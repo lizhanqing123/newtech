@@ -1,0 +1,253 @@
+0.指针语法定义
+
+常量指针: const int *p;  //指向的对象不能通过这个指针修改。但这个指针可以再次指向别的变量,变量也可以通过原来的声明修改
+int const *p;            //指针本身的值不能改动
+指针数组:int *p[5];    //每个元素都是指针的数组
+数组指针:int (*p)[10]; //指向一个数组的指针
+指向指针的指针 int **p;
+指向函数指针 int (*f) (int,int )
+
+1.
+char *p = "abc";char p2[] = "abc";的区别
+1.p指向常量，不可以修改.p2的存储空间在栈上，可以修改
+
+char数组的定义
+char a[20] = "asd*/+.";  //合法
+char a[] = "asd*/+.";  //合法
+char a[20] =  'avc';     //不合法
+
+2.引用和指针的区别
+1) 引用必须被初始化，指针不必。
+
+2) 引用初始化以后不能被改变，指针可以改变所指的对象。
+
+3) 不存在指向空值的引用，但是存在指向空值的指针。
+
+3.基类的析构函数不声明为virutal会有什么问题
+子类的析构函数不会调到，造成资源泄漏
+
+
+1.单件模式：
+template <class T>
+class singleton
+{
+protected:
+    singleton(){};
+private:
+    singleton(const singleton&){};//禁止拷贝
+    singleton& operator=(const singleton&){};//禁止赋值
+    static T* m_instance;
+public:
+    static T* GetInstance();
+};
+
+
+template <class T>
+T* singleton<T>::GetInstance()
+{
+    return m_instance;
+}
+
+template <class T>
+T* singleton<T>::m_instance = new T();
+
+这种写法比那种
+if (m_instance == NULL)
+{
+    return new T();
+}
+的方法好，这种写法有线程安全问题。上面的写法，在程序启动的时候对m_instance进行了赋值
+
+
+
+2.sizof()一个带虚函数的对象，结果是一个指针的大小
+各个数据类型的大小
+intsize = 4, longsize = 8, longlongsize = 8, int*size = 8, shortsize = 2
+
+
+4.虚函数表的实现
+
+
+1.普通函数的调用
+普通函数的地址在编译时期就确定了函数的入口地址
+
+
+虚函数调用结果问题
+class Base
+{
+   virtual int foo()
+  {
+  }
+};
+
+class Drived : public Base
+{
+   virtual int foo()
+   {
+   }     
+};
+
+
+Base a;
+Drived *p = (Drived*)&a;
+p->foo(); //调用基类的
+
+Drived a;
+Base *p = &a;
+p->foo();  //调用子类的
+
+
+Drived a;
+Base &b = a;
+b.foo()    //引用，可以多态，调用子类的
+
+虚函数表存在于类里面，
+对象里面存在一个虚指针，寻找虚函数的时候根据虚指针找到对应的虚函数
+子类的类里面的虚函数表子类虚函数会覆盖基类的函数。这样虚指针会找到子类的虚函数
+虚函数表在编译时产生，虚函数指针是运行时的产生的
+虚函数表的指针存在于对象实例中最前面的位置。
+
+5.一个类没有任何成员，sizeof是多少：
+是1.
+为什么？
+反例 class A{};  A a[10];如果对象占内存是0，。就没办法a[0],a[1],a[2]了
+ 
+
+6.函数参数进栈的顺序
+从右端往左进的
+
+
+1.volatile的作用
+声明一个变量为volatile时，编译器读取这个变量的时候回直接从内存中读取。不会从寄存器中读取，以保证这个值得正确。
+编译器从寄存器读取是为了优化。加快性能。
+在多线程和有汇编代码的时候可以发挥作用。
+
+
+2.C++中explicitde 的作用
+避免构造函数的隐式转换
+class Test
+{
+   public:
+   explict Test( int n){};
+};
+
+
+Test a(5);
+Test b = a;//编译错误。不可以隐式转换
+
+C++构造函数调用顺序:
+成员对象线构造。后构造自己
+
+
+
+C++多重继承，虚继承，菱形问题
+普通多重继承，在最后的子类中，会包含2分最基类的成员
+class Base
+{
+    public:
+     int b;
+};
+
+class Base1 : public Base
+{
+   public:
+    int b1;
+};
+
+class Base2 : public Base
+{
+   public:
+    int b2;
+};
+
+class Drived : pubic Base1,public Base2
+{
+   public:
+   int d;
+}
+
+Drived d;
+print(d.b);  //编译错误。不知道是哪个b，有歧义
+print(d.Base::b)//明确制定是从Base1那里继承来的b
+print(sizeof(d)) //20
+在普通多重继承下，构造函数调用顺序为:Base Base1 Base Base2 Dirved .注意由于没有使用虚拟继承，这里Base的构造函数调了2次
+
+
+虚拟继承
+
+class Base
+{
+    public:
+     int b;
+};
+
+class Base1 : virutal public Base
+{
+   public:
+    int b1;
+};
+
+class Base2 : virtual public Base
+{
+   public:
+    int b2;
+};
+
+class Drived : pubic Base1,public Base2
+{
+   public:
+   int d;
+}
+
+
+Base1 b1;
+print(sizeof(b1));          //12  包含一个虚基类表指针
+
+Base2 b2;
+print(sizeof(b2));          //12  包含一个虚基类表指针
+
+Dirved d;
+print(sizeof(d));          //24    包含二个虚基类表指针
+print d.b;                 //只有一个。无歧义
+
+虚拟多重继承下，构造函数调用顺序为:Base Base1 Base2 Dirved .注意由于没有使用虚拟继承，这里Base的构造函数调了1次
+
+extern "C"的作用：
+extern "C"的作用是指在C++模块中引用C模块的函数，需要按照C的方式来编译，因为C++代码编译成模块的时候会将参数带上( 因为有函数重载)，比如int fun( int a, int b )编译成模块 _fun_int_int,而C只编译成fun
+{
+   
+}
+
+
+
+C++内存泄漏排查工具valgrind
+
+C++ 只能指针
+默认只能指针属于C++标准STL里面的std::auto_ptr<MyObject>obj(new MyObject)
+原理就是在auto_ptr的析构函数里面调用delete
+
+但auto_ptr不能解决智能指针赋值的问题。2个auto_ptr赋值后。前面那个会丧失管理权。调用会崩溃
+
+只有Boost里面的share_ptr<T>可以解决这个问题，2个share_ptr之间赋值会增加引用计数器,是合法的。当有share_ptr被析构后。别的共享share_ptr不会delete，会将
+内部计数器--。计数器是0才会析构
+
+week_ptr<T>是用来观察share_ptr<T>的，可以作为share_ptr的基类，把share_ptr<T>给week_ptr赋值不会导致引用计数的增加
+
+C++11 特性
+1.增加自动类型推到auto，直接循环
+for(auto &e : array)
+{
+	print(e)
+}
+
+auto i = 5;
+
+2.增加nullptr代替NULL。因为NULL和0会区分不了。带入函数重载的时候会搞混
+
+3.增加系统的锁 lock_guard,unique_lock达到跨平台的锁
+
+
+4.
+C++ under_map和hash_map的区别
+原理都是hash表。但是unorderrmap都可以用string做参数。只要实现==号就可以
+

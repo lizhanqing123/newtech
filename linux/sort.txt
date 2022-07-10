@@ -1,0 +1,5 @@
+根据第1列进行排序
+sort -k 1 facebook.txt
+
+
+sort a.txt | uniq > b.txt

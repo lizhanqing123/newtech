@@ -1,0 +1,16 @@
+  虚拟机获得IP让ssh访问
+  1.编辑/etc/sysconfig/network-script/ens33里面的ONBOOT=yes
+  2.让BOOTPROTO=dhcp
+  3.在虚拟机的网络编辑中VMnet8里面使用本地DHCP分配虚拟机到下列IP，不行可以换一个,确保windows电脑中的VMnet8和VMnet1没有被禁用
+  4.systemctl restart network
+
+
+
+让局域网其他的机器可以访问这个台电脑
+  0.首先关闭电脑的防火墙
+  1.假设电脑的IP是192.168.9.101
+  2.在VMWARE中点编辑->虚拟网络编辑->选中仅主机->更改设置->VMnet8 NAT模式 网络是192.168.6.0 VMnet1是仅主机
+  3.点击VMNet8 NAT设置->NAT设置->网关ip:192.168.6.2,设置好端口转发
+  4.在外网访问192.168.9.101:80就转到虚拟机内部192.168.6.128:80,但是本机如果访问192.168.9.101的ip就不行,只能别的机器访问
+
+

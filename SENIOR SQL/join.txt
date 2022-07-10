@@ -1,0 +1,90 @@
+1. SELECT T1.a1,T1.a2 FROM "A" AS T1 INNER JOIN "B" AS T2 ON T1.a1=T2.a1       //其实是拿2个完整的表去根据(T1.a1=T2.a1)交叉的结果中列出T1.a1,T1.a2,
+
+
+2.和一个有SELECT的结果集进行交叉,然后列出T1.a1, T1.a2, T2.b1
+SELECT T1.a1, T1.a2, T2.b1 FROM "A" AS T1
+JOIN 
+(
+	SELECT a1, b1 FROM public."B" WHERE a1=1
+)T2
+ON (T1.a1 = T2.a1)
+
+
+
+2边都带where条件的Join，第一个条件的where写在on的后面：
+
+select 
+        a.vopenid
+            FROM
+                ieg_tdbank::qmws_dsl_playerlogin_fht0 a
+
+join
+(
+ select 
+        vopenid
+            FROM
+                ieg_tdbank::qmws_dsl_playerlogin_fht0
+			WHERE
+			tdbank_imp_date >= '2016062200' and tdbank_imp_date < '2016062300'
+ group by vopenid
+)b
+on (a.vopenid = b.vopenid)
+WHERE
+a.tdbank_imp_date >= '2016062300' and a.tdbank_imp_date < '2016062400'
+
+3.主表带where带group by
+select t.iuin from ieg_tdbank::tgclub_dsl_chargemsglog_fht0 t 
+join
+(
+	select iuin from ieg_tdbank::tgclub_dsl_chargemsglog_fht0 group by iuin having max(chargestamp) < 1478508804
+)t2
+on(t.iuin = t2.iuin)
+where t.tdbank_imp_date >= 2016103100 and t.tdbank_imp_date < 2016110800 and t.ioldpoint = t.inewpoint group by t.iuin
+
+
+4.主表和从表都带where 和group by。并且交叉的字段是函数中得到的，此时。在主表字段在on中不可以使用别名
+select '999001', parse_simple_json(a.kv,'cDeviceNet')[0] as net, parse_simple_json(a.kv,'url')[0] as url, parse_simple_json(a.kv,'cDeviceId')[0] as deviceid, avg(parse_simple_json(a.kv,'time')[0]) as time, count(1) as num from teg_mta_intf::ieg_xinyueclub a 
+JOIN
+(
+	select '999000', parse_simple_json(kv,'cDeviceNet')[0] as net, parse_simple_json(kv,'url')[0] as url, parse_simple_json(kv,'cDeviceId')[0] as deviceid, avg(parse_simple_json(kv,'time')[0]) as time, count(1) as num from teg_mta_intf::ieg_xinyueclub where ei = '999000' group by parse_simple_json(kv,'cDeviceNet')[0],parse_simple_json(kv,'url')[0],parse_simple_json(kv,'cDeviceId')[0]
+)b
+on (
+parse_simple_json(a.kv,'cDeviceId')[0] =
+ b.deviceid)
+where a.ei = '999001' group by parse_simple_json(a.kv,'cDeviceNet')[0],parse_simple_json(a.kv,'url')[0],parse_simple_json(a.kv,'cDeviceId')[0]
+
+
+5.对于主表和从表都有group by。并且要提取从表的数据出来，是不可以的例如：下面提取了b的数据是无法编译。这种情况需要先做好聚合操作。插入到临时表中，再进行join
+select a.col1,a.col2,b.col2 from xtable a group by col1,col2
+join
+(
+	select col1,col2 from xtable b group by col1,col2
+)
+on (a.col1=b.col1)
+group by a.col1 a.col2
+
+
+Mysql 内连接:
+select T1.toDeviceId,T2.DeviceId from draw_sensor as T1 right join draw_device as T2 ON T1.toDeviceId = T2.DeviceId and
+T1.DrawingLogId in (select DrawingLogId from bts where iBtsId= 80)
+	where T2.DrawingLogid in (select DrawingLogId from bts where iBtsId = 80 ) and T2.DeviceTypeId in (13,16,17,18)
+
+
+右连接:
+select T1.toDeviceId,T2.DeviceId from draw_sensor as T1 right join draw_device as T2 ON T1.toDeviceId = T2.DeviceId and
+T1.DrawingLogId in (select DrawingLogId from bts where iBtsId= 80)
+	where T2.DrawingLogid in (select DrawingLogId from bts where iBtsId = 80 ) and T2.DeviceTypeId in (13,16,17,18)
+
+
+select (select count(toDeviceId) from (select T1.toDeviceId,T2.DeviceId from draw_sensor as T1 right join draw_device as T2 ON T1.toDeviceId = T2.DeviceId and
+			T1.DrawingLogId in (select DrawingLogId from bts where iBtsId= 136)
+			where T2.DrawingLogid in (select DrawingLogId from bts where iBtsId = 136 ) and T2.DeviceTypeId in (13,16,17,18) ) as A where toDeviceId is Not NULL)*100/
+(
+ select count(DeviceId) from (select T1.toDeviceId,T2.DeviceId from draw_sensor as T1 right join draw_device as T2 ON T1.toDeviceId = T2.DeviceId and
+	 T1.DrawingLogId in (select DrawingLogId from bts where iBtsId= 136)
+	 where T2.DrawingLogid in (select DrawingLogId from bts where iBtsId = 136 ) and T2.DeviceTypeId in (13,16,17,18) ) as A 
+ ) as rate
+
+
+
+

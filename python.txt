@@ -1,0 +1,23 @@
+安装python3
+ln -s /usr/bin/python3 /usr/bin/python
+wget https://bootstrap.pypa.io/get-pip.py
+python get-pip.py
+pip install Django==1.8.9
+
+
+1.安装了python3导致yum不能用的问题
+vim yum
+将#!/usr/bin/python改为#!/usr/bin/python2.7
+
+vim /usr/libexec/urlgrabber-ext-down
+进入编辑模式将#!/usr/bin/python改为#!/usr/bin/python2.7
+
+
+3.Django 使用sqllite3
+wget https://www.sqlite.org/2021/sqlite-autoconf-3350500.tar.gz
+tar xf https://www.sqlite.org/2021/sqlite-autoconf-3350500.tar.gz
+cd sqlite-autoconf-3350500
+./configure --prefix=/usr/local/ && make && make install 
+mv /usr/bin/sqlite3 /usr/bin/sqlite3_3.7.17
+ln -s /usr/local/bin/sqlite3 /usr/bin/sqlite3
+export LD_LIBRARY_PATH="/usr/local/lib/"

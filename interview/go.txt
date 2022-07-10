@@ -1,0 +1,337 @@
+﻿一.
+data := []int{1,2,3}
+for _,v := range data{
+	v *= 10
+}
+
+fmt.Println("data ", data)
+答案：[1,2,3],v是复制的一份
+
+
+二.
+
+func change_slice( data [] int ){
+	data[0] = [0]
+}
+答案：这种情况可以改变元素的值。因为切片是传引用
+
+
+三.
+func change_slice( data [5] int ){
+	data[0] = [0]
+}
+ arr := [...] int{1,2,3,4,5}
+ chgange_slice(arr)
+答案：这种情况可以不可以改变元素的值。因为数组是传值
+
+四.简述go中 make 和 new 的区别
+make 创建map,通道，返回引用
+new 创建结构体，或者基础类型返回返回指针
+
+五.
+func main(){
+	runtime.GOMAXPROCS(1)
+	wg := sync.WaitGroup{}
+	wg.Add(5)
+	for i := 0; i<5; i++{
+		go func(){
+			fmt.Println("i:", i)
+			wg.Done()
+		}
+	}
+	wg.Wait()
+}
+答案：5，5,5,5,5，
+一次只能执行一个携程，主携程运行到wg.Wait才阻塞住,在时候i已经是5,后面的携程一个一个启动i都是5
+
+六
+func AppendSlice( list [] int, i int) bool {
+	if (len(list) > 10){
+		return true
+	}else{
+		list = append(list,i)
+		return AppendSlice( list, i+1)
+	}
+}
+
+var list = make([]int, 5)
+AppendSlice(list, 1)
+fmt.Println(list)
+答案：[0,0,0,0,0] list的append因为空间不够会在内部产生一个新的，需要用返回值去接收
+
+
+七
+func main() {
+	i := 1
+	defer fmt.Println(i)
+	i++
+	fmt.Println(i)
+	i++
+	panic("exit")
+	defer fmt.Println(i)
+}
+答案:2,1,panic exit
+panic之后的defer不会被运行到，前面的反向运行先2后1,结果不会受到i的值变化的影响
+
+
+八
+func my_task( ctx context.Context){
+	//补充代码
+	select {
+		case <-ctx.Done()
+		case <- chan1
+			return value
+	}
+}
+
+func main(){
+	ctx,cancel := context.WaitCancel(context.Background())
+	go my_task(ctx)
+	time.Sleep( 10 * time.Second )
+	cancel()
+	fmt.Println("cancel task")
+	time.Sleep(2*time.Second)
+}
+
+答案：使用ctx.Done()等待取消
+
+
+九,改进下面的程序
+C++内存泄漏排查工具valgrind
+
+type data struct{
+	name string
+}
+
+func main(){
+	m := map[string]data{
+		"x" : {"Tom"},
+	}
+}
+m["x"].name = "Jerry"
+答案：map的value不能用结构体直接访问。直接访问要用指针
+定义成:m := map[string]*data
+m["x"].name = "Jerry"
+不在map里的结构体是可以直接赋值的。指针和对象都可以
+
+
+十 单元测试和性能测试启动命令
+
+go test -v -run TestBingToHex bigtohex.go  函数名以Test开头
+go test -v -brench  bigtohex.go  性能测试
+
+
+十一.下面代码的问题
+package main
+
+import (
+		"fmt"
+	   )
+
+type student struct {
+	Name string
+	Age  int
+}
+
+func pase_student() map[string]*student {
+m := make(map[string]*student)
+	   stus := []student{
+		   {Name: "zhou", Age: 24},
+		   {Name: "li", Age: 23},
+		   {Name: "wang", Age: 22},
+	   }
+   for _, stu := range stus {
+	   m[stu.Name] = &stu
+   }
+   return m
+}
+
+func main() {
+	students := pase_student()
+	for k, v := range students {
+		fmt.Printf("key=%s,value=%v \n", k, v)
+	}
+}
+
+问题出在:
+for _, stu := range stus {
+	 m[stu.Name] = &stu
+}
+
+&stu是一个指针，一直在迭代。迭代到最后一个值，,最后打印的value结果全部是{wang,22}
+
+
+十二. 下面代码的输出
+import "fmt"
+
+type People struct{}
+
+func (p *People) ShowA() {
+	    fmt.Println("showA")
+			    p.ShowB()
+}
+func (p *People) ShowB() {
+	    fmt.Println("showB")
+}
+
+type Teacher struct {
+	    People
+}
+
+func (t *Teacher) ShowB() {
+	    fmt.Println("teacher showB")
+}
+
+func main() {
+	t := Teacher{}
+	t.ShowA()
+}
+
+结果是:
+showA
+showB
+没有继承。等价于t.People.ShowA()
+
+
+1.切片的底层结构
+切片由数组指针，长度，容量，底层数组构成
+多个切片可能共享一个底层数组，当从一个切片生成另外一个的时候。他们共享底层数据，修改其中一个会改变另外一个的值
+myNum := []int{10, 20, 30, 40, 50}
+newNum := myNum[1:3]
+
+当对切片进行append的时候，如果没有超过原来的容量，则修改底层数组的值。超过了原来的容量会创建新的底层数据，数值指针指向新的底层数据
+如果长度在1000以内。容量每次翻倍。否则每次增长1.25
+
+
+goroutine调度
+G:goroutine本身
+M:执行单元。只负责执行,是操作系统层面真正执行的东西
+P:管理G的队列，是M和P之间的代理,每一个P拥有一个本地队列，整个程序还拥有一个全局队列
+P的数量就是并行的数量就是GOMAXPROCS(最大256),也就是可以真正并发的数量,P的作用主要是在操作系统和G之间的隔离。是队列也是并发度
+当M在P中的G队列找到一个G执行的时候，遇到阻塞则立即切换，如果没有阻塞，运行几千次循环也会切换, 切换的时候会在本地队列里找到一个空闲的G，如果
+找不到，则去全局队列里拿,再没有则去其他P里面找一个G来执行
+
+
+defer()和return的顺序
+先执行return再执行defer(),defer是函数执行完毕后得收尾工作,如果返回一个变量是有名返回，则外面的数值会被defer改变
+
+
+
+15
+type People interface {
+	Speak(string) string
+}
+
+type Stduent struct{}
+
+func (stu *Stduent) Speak(think string) (talk string) {
+	if think == "bitch" {
+		talk = "You are a good boy"
+	} else {
+		talk = "hi"
+	}
+	return
+}
+
+func main() {
+	var peo People = Stduent{}
+	think := "bitch"
+	fmt.Println(peo.Speak(think))
+}
+答案：如果要显示定义var peo Peole 必须实现成
+func (stu Stduent) Speak(think string) (talk string) {
+	if think == "bitch" {
+		talk = "You are a good boy"
+	} else {
+		talk = "hi"
+	}
+	return
+}
+用结构体做接收器指针形式定义也可以编译通过
+peo := new(Stduent)
+peo.Speak(think)
+
+
+如果恋情指针作为接收器只能写成这样:
+peo := new(Stduent)
+peo.Speak(think)
+
+
+
+16.golang有什么地方必须使用指针
+1.用结构体作为接收器无法改变结构体内变量的值
+2.当map的value的时候无法修改他的值
+
+
+17.interface的内部实现
+eface代表了没有方法的空接口
+一共有两个属性构成，一个是类型信息_type，一个是数据信息。
+
+type eface struct{
+       type  _type
+       data unsafe.Pointer
+}
+
+
+type _type struct {
+	size       uintptr 
+	ptrdata    uintptr // size of memory prefix holding all pointers
+	hash       uint32
+	tflag      tflag
+	align      uint8
+	fieldalign uint8
+	kind       uint8   //具体是什么类型，bool int string等
+	alg        *typeAlg
+	// gcdata stores the GC type data for the garbage collector.
+	// If the KindGCProg bit is set in kind, gcdata is a GC program.
+	// Otherwise it is a ptrmask bitmap. See mbitmap.go for details.
+	gcdata    *byte
+	str       nameOff
+	ptrToThis typeOff
+}
+
+iface代表了有方法集的接口
+type iface struct {
+	tab  *itab             //这个接口的方法集,itab中也有_type
+	data unsafe.Pointer
+}
+
+18 go什么时候会触发gc
+手动调用runtime.gc()
+当所分配的堆大小达到阈值(由控制器计算的触发堆的大小)时，将会触发。
+当距离上一个 GC 周期的时间超过一定时间时，将会触发
+
+
+19.go map的内部实现
+首先通过hash函数算出hashcode,但是hashcode不是桶的位置。是分高位和地位，底位是桶的位置，高位是key的值，然后这些key以数组得形式在一起，遍历得到找到Key。就很容易找到value
+而java和C++得hashmap hashcode直接就是桶得位置，发生hash冲突得时候用链表解决
+
+
+20 go如何分析性能
+可以用go tool pporf 
+
+在代码中 import "runtime/pprof"
+
+创建一个文件f
+调用 pprof.StartCPUProfile(f)和pprof.StopCPUProfile() 生成xx.pprof
+然后调用go tool pprof xxx.pprof
+
+安装图形化工具 graphviz
+在pporf中输入web可以得到火焰图
+
+在web开发下包含
+_ "net/http/pprof"
+http://localhost:8000/debug/pprof/可以看到服务得情况
+
+用命令得到main文件
+go tool pprof main http://localhost:8000/debug/pprof/heap
+然后输入web可以得到火焰图
+
+
+
+
+
+
+
+
+

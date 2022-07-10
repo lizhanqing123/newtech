@@ -1,0 +1,295 @@
+//------------------------------------------------------------------------
+// 简称: turtletest
+// 名称: turtletest
+// 类别: 公式应用
+// 类型: 用户应用
+//------------------------------------------------------------------------
+
+Params
+	Numeric avgn(64);
+	Numeric n3(8);
+	Numeric openlimit(43);
+	Numeric nLength(2);
+	Numeric closelimit(13);
+Vars
+	Numeric highest20;
+	Numeric lowest20;
+	Numeric highest18;
+	Numeric lowest18;
+	Numeric highest55;
+	Numeric lowest55;
+	Numeric highest6;
+	Numeric lowest6;
+	Numeric highest5;
+	Numeric lowest5;
+	Numeric highest2;
+	Numeric lowest2;
+	Numeric highest3;
+	Numeric lowest3;
+	Numeric highest7;
+	Numeric lowest7;
+	Numeric highest4;
+	Numeric lowest4;
+	Numeric volume;
+	NumericSeries avg5;
+	NumericSeries avg10;
+	NumericSeries avg20;
+	NumericSeries avg30;
+	NumericSeries avg55;
+	Numeric highestopen;
+	Numeric lowestopen;
+	Numeric breakline;
+	Numeric biaslimit;
+	Numeric avgcount;
+	Numeric count;
+	Numeric i;
+	Numeric MinPoint;
+	NumericSeries diff(0);
+	NumericSeries dea(0);
+	NumericSeries ema1(0);
+	NumericSeries ema2(0);
+	Numeric sellprice;
+	Numeric tdcount;
+Begin
+
+	If(!CallAuctionFilter()) Return;
+	
+	biaslimit = openlimit;
+
+	highest20 = HighestFC(High[1],20);
+	lowest20 = LowestFC(Low[1],20);
+	
+	highest18 = HighestFC(High[1],18);
+	lowest18 = LowestFC(Low[1],18);
+	
+	highest6 = HighestFC(High[1],6);
+	lowest6 = LowestFC(Low[1],6);
+	
+	highest5 = HighestFC(High[1],5);
+	lowest5 = LowestFC(Low[1],5);
+	
+	highest4 = HighestFC(High[1],4);
+	lowest4 = LowestFC(Low[1],4);
+	
+	highest3 = HighestFC(High[1],3);
+	lowest3 = LowestFC(Low[1],3);
+	
+	highest2 = HighestFC(High[1],2);
+	lowest2 = LowestFC(Low[1],2);
+	
+	highest7 = HighestFC(High[1],7);
+	lowest7 = LowestFC(Low[1],7);
+
+	highestopen = HighestFC(High[1], n3);
+	lowestopen = LowestFC(Low[1], n3);
+	
+	avg55 = AverageFC(Close,avgn);
+	
+	avg5 = AverageFC(Close,3);
+	avg10 = AverageFC(Close,10);
+	avg20 = AverageFC(Close,20);
+	avg30 = AverageFC(Close,26);
+	avg55 = AverageFC(Close,avgn);
+	
+	
+	PlotNumeric( "avg55", avg55 );
+	PlotNumeric( "avg20", avg20 );
+	PlotNumeric( "avg5", avg5 );
+	PlotNumeric( "avg10", avg10 );
+	avgcount = 0;
+	count = 0;
+	i = 1;
+	breakline = 0;
+	volume = 1;
+	if (Close[1] > avg55[1])
+	{
+		if (avg5[1] > avg10[1])
+		{
+			avgcount = avgcount + 1;
+		}
+		if (avg5[1] > avg20[1])
+		{
+			avgcount = avgcount + 1;
+		}
+		if (avg10[1] > avg20[1])
+		{
+			avgcount = avgcount + 1;
+		}
+		if (avg20[1] > avg30[1])
+		{
+			avgcount = avgcount + 1;
+		}
+		if (avg20[1] > avg20[2])
+		{
+			avgcount = avgcount + 1;
+		}
+		if (avg10[1] > avg10[2])
+		{
+			avgcount = avgcount + 1;
+		}
+		if (avg10[1] > avg10[2])
+		{
+			While(avg5[i] > avg20[i]  )
+			{
+				count = count + 1;
+				i = i+1;
+			}
+		}
+	}
+	Else if (Close[1] < avg55[1] )
+	{
+		if (avg5[1] < avg10[1])
+		{
+			avgcount = avgcount - 1;
+		}
+		if (avg5[1] < avg20[1])
+		{
+			avgcount = avgcount - 1;
+		}
+		if (avg10[1] < avg20[1])
+		{
+			avgcount = avgcount - 1;
+		}
+		if (avg20[1] < avg30[1])
+		{
+			avgcount = avgcount - 1;
+		}
+		if (avg20[1] < avg20[2])
+		{
+			avgcount = avgcount - 1;
+		}
+		if (avg10[1] < avg10[2])
+		{
+			avgcount = avgcount - 1;
+		}
+		if (avg10[1] < avg10[2])
+		{
+			While(avg5[i] < avg20[i]  )
+			{
+				count = count - 1;
+				i = i+1;
+			}
+		}
+	}
+	
+	MinPoint = 1*MinMove*PriceScale;
+	if (MarketPosition == 0)
+	{
+		if (Close[1] > avg55[1])
+		{
+			if ( avgcount >= 5  || count >= nLength  )
+			{
+				breakline = highestopen;
+			}
+			else
+			{ 
+				if (highest20 - highest18 > openlimit * 0.5)
+				{
+					breakline = highest18;
+				}
+				Else
+				{ 
+					breakline = highest20;
+				}
+			}
+ 			if (Abs(breakline - highest20) < 0.5)
+			{
+				biaslimit = biaslimit*1.05;
+			} 
+			if ( breakline > 0 && Abs(breakline - avg20[1]) < biaslimit  && breakline > avg20[1]  && High > breakline)
+			{
+				Buy( volume, Max(breakline + MinPoint,open));
+			} 
+		}
+		else if (Close[1] < avg55[1])
+		{
+			if (avgcount <= -5 || count <= (0-nLength) )
+			{
+				breakline = lowestopen;
+			}
+			else
+			{ 
+				if (Abs(lowest20 - lowest18) > openlimit * 0.5)
+				{
+					breakline = lowest18;
+				}
+				Else
+				{ 
+					breakline = lowest20;
+				} 
+			}
+ 			if (Abs(breakline - lowest20) < 0.5)
+			{
+				biaslimit = biaslimit*1.05;
+			}
+			if  (  breakline > 0 && Abs(breakline - avg20[1]) < biaslimit && breakline < avg20[1] &&  Low < breakline)
+			{
+				SellShort( volume, Min(breakline - MinPoint, open));
+			} 
+		}
+	}
+	else if (MarketPosition == 1)
+	{
+		if (High[1] - avg20[1] > closelimit*8.3 || High[2] - avg20[2] > closelimit*8.3 || High[3] - avg20[3] > closelimit*8.3 || High[4] - avg20[4] > closelimit*8.3  || High[5] - avg20[5] > closelimit*8.3 )
+		{
+			sellprice = Max(avg5[1],Low[1]);
+			FileAppend( "E:\\tbv5546_x64_portable\\tb.log", "close1");
+		} 
+		else if (Close[1] < Close[2] && Close[2] < Close[3] && Close[3] < Close[4] && Close[4] < Close[5] )
+		{ 
+			sellprice = Max(avg5[1],Low[1]);
+			FileAppend( "E:\\tbv5546_x64_portable\\tb.log", "close1");
+		}
+		else if ( BarsSinceLastEntry < 6 &&  (High[1] - avg20[1] >  closelimit*5  || High[2] - avg20[2] >  closelimit*5)  )
+		{
+			sellprice = lowest2;
+			FileAppend( "E:\\tbv5546_x64_portable\\tb.log", "close2");
+		} 
+		Else
+		{
+			sellprice = lowest3;
+		}
+		if  (Low < sellprice)
+		{
+			Sell( 0, Min(open, sellprice - MinPoint) );
+		}
+	}
+	else if (MarketPosition == -1)
+	{
+		if ((avg20[1] - Low[1]) > closelimit*8.3 || (avg20[2] - Low[2]) > closelimit*8.3 || (avg20[3] - Low[3]) > closelimit*8.3 || (avg20[4] - Low[4]) > closelimit*8.3  || (avg20[5] - Low[5]) > closelimit*8.3 )
+		{
+			sellprice = Min(avg5[1],High[1]);
+			FileAppend( "E:\\tbv5546_x64_portable\\tb.log", "close1");
+		}
+		else if (Close[1] > Close[2] && Close[2] > Close[3] && Close[3] > Close[4] && Close[4] > Close[5] )
+		{ 
+			sellprice = Min (avg5[1],High[1]);
+			FileAppend( "E:\\tbv5546_x64_portable\\tb.log", "close1");
+		}
+		else if ( BarsSinceLastEntry < 6 && (avg20[1] - Low[1] > closelimit*5  || (avg20[2] - Low[2]) > closelimit*5) )
+		{
+			sellprice = highest2;
+			FileAppend( "E:\\tbv5546_x64_portable\\tb.log", "close2");
+		}
+		Else
+		{
+			sellprice = highest3;
+		}
+		if (High > sellprice)
+		{
+			BuyToCover( 0, Max(open, sellprice + MinPoint) );
+		}
+		
+		
+		
+	}
+	
+End
+
+//------------------------------------------------------------------------
+// 编译版本	GS2015.12.25
+// 用户版本	2018/12/07 21:09:03
+// 版权所有	lizhanqing
+// 更改声明	TradeBlazer Software保留对TradeBlazer平台
+//			每一版本的TradeBlazer公式修改和重写的权利
+//------------------------------------------------------------------------

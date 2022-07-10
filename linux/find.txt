@@ -1,0 +1,2 @@
+在目录中递归查找
+find ./ -name "*.cpp" | xargs grep "stringname"

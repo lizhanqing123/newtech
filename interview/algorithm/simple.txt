@@ -1,0 +1,62 @@
+1.冒泡排序
+关键点:第2层循环不要循环到底
+void sort( int a[], int len )
+{
+    for( int i = 0; i<len; i++)
+     for( j = 0; j<len - i - 1;j++)
+     {   
+        if (a[j] > a[j+1])
+        {
+           swap( a[j], a[j+1]);
+        }
+     }
+}
+
+
+2.字符串反转
+char *invert( char *dest )
+{
+    int len = strlen(dest);
+    for( int i = 0; i<len/2; i++)
+    {
+        swap( dest[i], dest[len-i-1]);
+    }
+    return dest;
+}
+
+
+3.atoi的实现:
+关键点：每次之前的结果加乘10
+int atoi( const char *p )
+{
+    int i = *p - '0';
+    int sum = 0;
+    int count = 1;
+    for( char *q = p; q != '\0'; q++,count *= 10)
+    {
+        int tmp = q* - '\0';
+        sum = sum*count + tmp * count;
+    }
+    return sum;
+}
+
+
+
+4.找到数组中第2大的数
+int findsecond( char a[], int len)
+{
+    int first = max(a[0], a[1]);
+    int second = min(a[0], a[1]);
+    for( int i = 2; i<len; i++)
+    {
+        if (a[i] > first)
+        {
+            second = first;
+            first = a[i];
+        }
+ 	else if (a[i] > second)
+        {
+     	    second = a[i];
+        }
+    }
+}

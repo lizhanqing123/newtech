@@ -1,0 +1,219 @@
+
+kubectl get nodes  查看物理节点信息
+kubectl get pods   查看默认命名空间的pods
+kubectl get pods -o wide  查看默认命名空间的pods的详细信息
+kubectl describe pods onePodName  查看默认命名空间的onePodName的详细信息
+kubectl apply -f yaml文件 通过yaml文件创建或更新资源
+kubectl delette -f yaml文件          通过yaml文件删除资源
+kubectl exec -it podid  进入指定容器内
+kubectl logs 容器id|podid  查看日志
+kubectl explain pod 查看pod用法
+ 
+在有 yaml 文件的情况下可以直接使用 kubectl replace --force -f xxx.yaml  重启pod，nodeport端口会变
+没有yaml文件  kubectl get pod {podname} -n {namespace} -o yaml | kubectl replace --force -f -  重启
+ 
+kubectl get node --show-labels
+kubectl label nodes k8s-node1 proxysrv=proxysrv
+ 
+ 
+kubeadm环境搭建单Master多Node===========================================
+准备2台centos7.6-7.9虚拟机，至少2G内存
+ip,hostname设置
+172.16.40.9  k8s-master
+172.16.40.10  k8s-node1
+ 
+配置hosts
+vi /etc/hosts
+172.16.40.9 wgc-k8s-master
+172.16.40.10 wgc-k8s-node1
+ 
+master
+hostnamectl set-hostname k8s-master && bash
+ 
+node1
+hostnamectl set-hostname k8s-node && bash
+ 
+===所有节点操作start=====================
+安装iptables并禁用
+yum install iptables-services -y
+service iptables stop   && systemctl disable iptables
+禁用selinux
+vi /etc/selinux/config
+#修为
+SELINUX=disabled
+SELINUXTYPE=targeted
+#重启系统,让selinux修改生效
+ 
+swap禁用 注释掉 要高性能
+vi /etc/fstab
+#/dev/mapper/centos-swap swap
+ 
+配置时间同步
+yum install ntpdate -y
+添加任务计划
+crontab -e
+* */1 * * * /usr/sbin/ntpdate   cn.pool.ntp.org
+ 
+设置系统参数 - 允许路由转发，不对bridge的数据进行处理
+cat <<EOF > /etc/sysctl.d/k8s.conf
+net.ipv4.ip_forward = 1
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+EOF
+ 
+docker安装
+yum install -y yum-utils device-mapper-persistent-data lvm2
+添加软件源信息：
+yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+ 
+更新 yum 缓存：
+yum makecache fast
+ 
+安装 Docker-ce：
+yum -y install docker-ce
+ 
+添加Docker阿里源 和私有仓库
+mkdir /etc/docker
+cat >/etc/docker/daemon.json <<EOF
+{
+ "registry-mirrors":["https://rsbud4vc.mirror.aliyuncs.com","https://registry.docker-cn.com","https://docker.mirrors.ustc.edu.cn","https://dockerhub.azk8s.cn","http://hub-mirror.c.163.com","http://qtid6917.mirror.aliyuncs.com", "https://rncxm540.mirror.aliyuncs.com"],
+ "insecure-registries" : [ "1.1.1.1:5000","192.168.1.70:5000" ],
+ "exec-opts": ["native.cgroupdriver=systemd"],
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "100m",
+    "max-file":"5"
+  }
+}
+EOF
+ 
+添加kubernetes的阿里源
+cat >>/etc/yum.repos.d/kubernetes.repo <<EOF
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+enabled=1
+gpgcheck=1
+repo_gpgcheck=1
+gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+EOF
+ 
+systemctl daemon-reload
+ 
+接受所有ip的数据包转发
+vi /lib/systemd/system/docker.service
+#找到ExecStart=xxx，在这行上面加入一行，内容如下：(k8s的网络需要)
+ExecStartPost=/sbin/iptables -I FORWARD -s 0.0.0.0/0 -j ACCEPT
+ 
+启动 Docker 后台服务
+systemctl start docker
+开机自动启动
+systemctl enable docker
+ 
+yum install -y kubelet-1.20.6 kubeadm-1.20.6 kubectl-1.20.6
+systemctl enable kubelet && systemctl start kubelet
+错误排查
+https://www.freesion.com/article/73351064854/
+ 
+init 6 或者reboot
+===所有节点end=====================
+ 
+ 
+ 
+===Master上初始化集群：=================
+kubeadm init --kubernetes-version=1.20.6 \
+--apiserver-advertise-address=172.16.40.9 \
+--image-repository registry.aliyuncs.com/google_containers \
+--service-cidr=10.1.0.0/16 \
+--pod-network-cidr=10.244.0.0/16
+ 
+ 
+ 
+需要一点时间！！按提示操作一下
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+ 
+如果报错：
+[ERROR SystemVerification]
+初始化集群加上 --ignore-preflight-errors=SystemVerification
+ 
+master上创建工作节点join的token（初始化的token也行）：
+kubeadm token create --print-join-command 
+ 
+Node节点加入集群
+kubeadm join 172.16.40.9:6443 --token 75c591.mofxxdz1helgbl9w \
+    --discovery-token-ca-cert-hash sha256:d1859853aae3960fcb90d467ff5738d0ceaddf59635e4cd65c70a4714e604753
+ 
+查看集群：
+kubectl get nodes
+此时集群状态还是NotReady状态，因为没有安装网络插件
+#下载 calico 部署文件下面的版本不是最新版
+$ wget https://docs.projectcalico.org/v3.10/getting-started/kubernetes/installation/hosted/kubernetes-datastore/calico-networking/1.7/calico.yaml 
+ 
+#替换 calico 部署文件的 IP 为 kubeadm 中的 networking.podSubnet 参数 10.244.0.0。
+#复制下面版本的不需要替换 这步骤
+$ sed -i 's/192.168.0.0/10.244.0.0/g' calico.yaml
+ 
+#部署 Calico 插件
+$ kubectl apply -f calico.yaml
+ 
+===================================
+ 
+选择docker版本安装：
+yum remove -y docker-*
+yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+yum list docker-ce
+yum list docker-ce --showduplicates
+docker -y install docker-ce-19.03.13-3.el7
+docker -y install docker-ce-19.03.15-3.el7
+yum -y install docker-ce-19.03.15-3.el7
+ 
+===========================================
+docker卸载一干净 
+/etc/docker/daemon.json 最后一个不能加逗号
+docker起不来，基本是这个文件配置出错，低版本不支持此种文件配置！！
+ 
+ 
+程序安装目录
+/etc/kubernetes
+证书相关目录
+/etc/kubernetes/pki
+k8s系统组件相关的yaml文件目录
+/etc/kubernetes/manifests/
+ 
+ 
+NodePort端口限制修改
+vi /etc/kubernetes/manifests/kube-apiserver.yaml
+添加这行：- --service-node-port-range=1-65535
+spec:
+  containers:
+  - command:
+    - kube-apiserver
+    - --service-node-port-range=1-65535
+    - --advertise-address=172.16.40.9
+ 
+数据持久化  目录下不可以再有目录！！！否则挂载不成功！！
+volumeMounts:
+- mountPath: /etc/localtime
+  name: time-path
+  readOnly: true           
+- mountPath: /jackpot/bin/logs  //目录下不可以再有目录！！！否则挂载不成功！！
+  name: logs-dir
+======================
+volumes:
+- name: logs-dir
+hostPath:
+  path: /root/jackpot/bin/logs/
+  type: DirectoryOrCreate 
+- name: time-path
+hostPath:
+  path: /etc/localtime
+ 
+ 
+让Master节点也运行Pod,修改template的spec
+spec:
+  tolerations:
+  - key: node-role.kubernetes.io/master
+    operator: Exists
+    effect: NoSchedule

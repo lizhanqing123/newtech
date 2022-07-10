@@ -1,0 +1,100 @@
+网络协议:
+
+5.TCP是如何控制发送速率的
+通过滑动窗口，接受方会通过协议告诉对方自己滑动窗口的大小，代表可接受数据的大小，对方根据这个大小来发送数据
+是为了流量控制，避免网络拥堵，可以一次发送多个分组，使得流浪可控
+ 
+
+6.TCP3次握手和4次挥手:
+理解1:
+第一次握手： A给B打电话说，你可以听到我说话吗？
+第二次握手： B收到了A的信息，然后对A说： 我可以听得到你说话啊，你能听得到我说话吗？
+第三次握手： A收到了B的信息，然后说可以的，我要给你发信息啦！
+理解2:
+只有最后一个ack发过去后。服务端才可以知道客户端可以收到消息了。
+
+
+4次挥手的主要原因是B端有数据还没有发完，需要等数据发完，发完再发一次，等A再回。这样就4次了
+A:“喂，我不说了 (FIN)。”A->FIN_WAIT1
+B:“我知道了(ACK)。等下，上一句还没说完。Balabala…..（传输数据）”B->CLOSE_WAIT | A->FIN_WAIT2
+B:”好了，说完了，我也不说了（FIN）。”B->LAST_ACK
+A:”我知道了（ACK）。”A->TIME_WAIT | B->CLOSED
+A等待2MSL,保证B收到了消息,否则重说一次”我知道了”,A->CLOSED
+
+HTTP2.0和1.0的区别
+HTTP1.0中的KEEP_ALIVE可以在一段时间内保持连接
+HTTP/2采用二进制格式而非文本格式
+HTTP/2是完全多路复用的，而非有序并阻塞的――只需一个连接即可实现并行
+使用报头压缩，HTTP/2降低了开销
+HTTP/2让服务器可以将响应主动“推送”到客户端缓存中
+nginx可以配置Http2.0，需要先配置https
+
+HTTP 返回码
+2XX 成功
+200 OK
+204 处理成功，但是没有返回内容
+206 服务器返程部分处理
+
+3XX 重定向
+301 永久重定向
+307 暂时重定向
+
+4XX
+400 Bad Request 请求报文错误
+401 认证失败
+403 Forbidden 权限不足
+404 页面找不到，找不到请求的资源
+
+5XX
+500 internal Server Error 服务器执行报错
+503 Service Unavaible 服务器超负荷或停机维护
+
+WEBSOCKET
+WebSocket是一种在单个TCP连接上进行全双工通信的协议，允许服务端主动向客户端推送数据
+服务器可以用Nodejs里面的ws模块
+
+var WebSocketServer = require('ws').Server,
+wss = new WebSocketServer({ port: 8181 });
+wss.on('connection', function (ws) {
+    console.log('client connected');
+    ws.on('message', function (message) {
+        console.log(message);
+    });
+});
+
+
+TCP连接的各种状态:
+
+CLOSED：无连接是活动的或正在进行
+LISTEN：服务器在等待进入呼叫
+SYN_RECV：一个连接请求已经到达，等待确认,TCP3次握手后主动方等待最后一个ACK到达的状态
+SYN_SENT：客户端发起请求后，
+ESTABLISHED：正常数据传输状态
+FIN_WAIT1：主动方第一次提出断开连接后进入的状态
+FIN_WAIT2：被动方告诉主动方等我的数据发送完。这个时候主动方进入FIN_WAIT2
+ITMED_WAIT：等待所有分组死掉
+CLOSING：两边同时尝试关闭
+CLOSE_AWAIT 被动关闭方，在等待自己的数据发送完毕
+TIME_WAIT：主动方回复last_ack给被动放后，自己要等2个msl后才回关闭，因为要确保数据在2个msl也就是生存周期后才会消失，才能避免新建立的TCP连接和原来的分组在一起
+LAST_ACK：等待所有分组死掉
+
+为什么要有time_await: time_await发生第2次ACK发送之后，等待2个MSL(报文最大生存周期)后才真正关闭,因为之前的如果不等待2个MSL直接关闭开启新的TCP连接的话，之前丢失的数据可能延时到达对端，导致新的连接误收到之前的数据
+注意：是发送一端进入time_await状态
+
+close_await是对方主动要求关闭，本端回复FIN后，进入的状态
+
+主动端可能出现的状态：FIN_WAIT1、FIN_WAIT2、CLOSING、TIME_WAIT 
+被动端可能出现的状态：CLOSE_WAIT LAST_ACK
+
+sync 攻击 ，建立大量半连接的tcp连接。但是不回复ack，导致连接不成功,消耗服务器的资源
+在业务服务器前面架设一个防火墙服务器，所有的连接到了一定时机还不发ack就断开并给业务服务器发送reset断开连接
+
+DDOS攻击,通过发起大量的网络请求占满服务器的流量，带宽，资源的攻击方式
+解决方案：
+高防服务器
+
+
+
+close和shutdown的区别
+1.shutdown可以关闭一半。例如只关闭读只关闭写。close不能
+2.close只关闭本进程对这个socket的使用，而不影响其他进程，而shutdown的关闭socket本身导致所有进程都不能使用。父子进程可以公用socket

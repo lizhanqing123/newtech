@@ -1,0 +1,59 @@
+1.php遍历关联数组
+
+for( $array1 as $key=>$valye){
+}
+2.对象方法，魔术重载
+
+class Car
+{
+   $speed = 10;
+   function __call( $name, $array){
+        if $name == "speedUp()"{
+            $speed += 10;
+        }
+   }
+}
+$car  = new(Car);
+$car->speedUp();
+
+3.删除cookie
+setcookie("a",1,time()-1);
+
+4.设置session
+start_session();
+$_SESSION['user_id'] = 1
+
+5.异常代码
+try{
+throw new Exception()
+}
+catch(Exception $e){
+   echo  $e->getMessage() . $e->getLine();
+}
+
+
+6.mysql 原生数据库访问
+
+$connect = mysql_connect('127.0.0.1','user','')
+mysql_selectdb($connect);
+$res = mysql_query($connect,'select * from user')
+$row = mysql_fetch_row($res)
+$data = array();
+
+while($row = mysql_fetch_array( $result ) ){
+	$data[] = $row
+}
+
+7.php多维数组。索引和关联2种
+
+array1 = array(
+  array(1,2,3),
+  array(4,5,6)
+)
+
+array1 = array(
+  'a' = array( 1,2,3),
+  'b' = array(4,5,6)
+)
+
+

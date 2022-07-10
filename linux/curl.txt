@@ -1,0 +1,2 @@
+curl '10.13.98.233:90?id=3&a=5' -X Post -d "aaa"
+curl --header "Authorization:Basic YWRtaW46cHVibGlj" http://47.94.224.227:18083/api/v2/clients/BTS_117

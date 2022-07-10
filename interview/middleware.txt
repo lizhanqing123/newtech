@@ -1,0 +1,127 @@
+7. redis 事务：
+命令：multi(表示进入事务),exec（表示执行事务中队列中所有命令），WATCH（在事务中监控一个键值，当键值被改变会主动通知），discard(清楚所有队列中的命令)
+在执行事务前使用watch来监控一个变量，如果事务的执行过程中，被监控的变量改变了，则事务执行失败，回滚
+
+1.redis事务特性: 1.不保证原子性,中间的命令失败不影响其他命令
+
+redis执行lua 脚本 eval "return redis.call('set','foo','bar')" 0
+可以用来执行多个命令,并且是原子的
+
+
+redis内部实现:
+1.存内存访问
+2.异步IO多路复用，使用EPOLL
+3.单线程避免线程切换
+
+在redis的key,value结构写入一个200M的数据，一个客户端去读。会造成什么现象，会阻塞，因为redis是单线程
+
+redis
+1.支持持久化
+2.主从同步
+数据类型有:
+key-value, hashmap, list,set,sortset
+zsort是根据分数来排序的集合,函数是zadd( list1, 5, data ), 5就是分数。排序根据分数来排序, 而set根据键值来排序
+使用setnx(key来加锁)，如果成功则表示没有被锁住，
+
+
+1.ZOOKEEPER
+1.数据订阅和发布，既配置中心，实现配置的集中管理和配置更新，服务可以主动推送变更配置到客户端
+2.命名服务，在RPC框架中可以根据服务的名字获取到IP地址
+3.分布式协调,在分布式环境下当机器节点发生变更的时候对客户端watch通知
+4.master选举
+5.分布式锁
+6.使用ZAB协议类似PAXOS协议
+
+
+ETCD
+etcd是一个基于HTTP+json的键值分布式存储系统，key-value
+使用了一致性协议,RAFT协议节点宕机可以重新选举
+ETCD支持HTTPS，保密协议，存储速度更快，持久化更快
+etcd可以实现服务发现，服务器启动的时候向etcd注册自己，客户端通过访问etcd得到服务器列表，可以把负载均衡策略放到客户端使用grpcpolicy库在客户端实现负载均衡
+如果要nginx和etcd结合达到动态负载均衡，使用nginx+etcd+confd来动态更新nginx配置文件
+
+
+消息中间件:
+常见MQ有：
+1.activeMQ
+2.rabbitMQ
+3.kaffka 日志消息中间件
+消息中间件的好处:
+各个系统之间的解耦，例如登录系统登录之后需要调用短信系统和日志系统，只需要将消息入队列即可
+有消息回复机制的中间件有确保消息不可丢失的功能
+具有削峰的功能
+
+ngnix实现长连接
+0.nginx实现反向代理的时候如何实现长连接
+1.http的括号里加入 keepalive_timeout  65;,这里是让客户端到nginx的长连接有效
+2.同时要求客户端的协议里也支持keepalive
+3.这里的长连接包括客户端到nginx的和nginx到后端server的
+4.让nginx对后端服务的反向代理也支持长连接要在
+
+http {
+	upstream backend {
+		server 192.168.0.1：8080 weight=1 max_fails=2 fail_timeout=30s;
+		server 192.168.0.2：8080 weight=1 max_fails=2 fail_timeout=30s;
+		keepalive 300; // 这个很重要！
+	}   
+	server {
+		listen 8080 default_server;
+		server_name "";
+		location / {
+		proxy_pass http://backend;
+		proxy_http_version 1.1;                         # 设置http版本为1.1
+		proxy_set_header Connection "";                 # 设置Connection为长连接（默认为no）}
+	}
+}
+}
+
+nginx 的架构
+nginx分为master和worker的架构
+master作用是分配和调度,决定启用多少个work进程,和work进程的调度,并不直接参与数据网络数据的收发
+worker进程负责网络数据的收发，处理http请求，后面fasgcgi的调用，反响代理功能，正则表达式解析,使用了epoll异步模型,
+
+
+redis 是如何配备数据持久化的，单线程一边处理客户端数据，一边持久化
+答：使用fork。在fork的时候子进程和父进程的数据是共享的，只有在子进程对数据写的时候才会拷贝（copy on write）,但是这个时候持久化不需要对数据写，只有读，性能还是可以的
+
+redis的hashset如何做rehash
+
+1.首选判断当前负载因子数据量/hash表长度，负载大于1的时候就会发送扩容。hash表长度扩容一倍，将rehashidx置为0，当有数据插入的时候。除了插入到原有的hash表里。还将rehashindex上数据
+rehash到新的hash表中，当旧表所有的数据都rehash到新表的时候，rehash结束。将rehashindex置为-1.
+
+redis底层是如何做LRU的。在key上面记录一个时间戳，随机选取5个（可配redis.conf 中的maxmemory_samples），从中选取最旧的key进行淘汰来达到近似的lru，当maxmemory_samples数量是10
+的时候。非常接近精确的lru。redis3.0中使用了一个大小为maxmemory_samples的池，进行不断的替换，每次随机选取5个和池中进行比较。替换达到池中是最旧的Key，并且保证池中总体最旧
+
+
+redis是如何防止大量的key同一时间过期：
+答：给过期时间加一个随机值
+
+
+mysql的基于hash实现的索引的原理和特点
+
+1.对每一行的所有列计算一个hash码，hash索引中存储的就是hash码
+2.不适合做范围查询。因为在磁盘上不是连续的
+3.只能做等于号的查询。不能做> <的查询
+4.不能做排序
+5.当有2行计算出来的hash码一样的时候就发生hash冲突，这时候就会遍历比较
+
+
+
+关于redis分布式锁
+1.redis做分布式锁set aa nx 1 ex 5 获取设置一个分布式锁aa的值是1.过期5秒，没有获得锁返回失败
+2.首先的问题是这个锁可能被别的进程误删。所以要改为set aa nx processid+携程id ex 5
+3.删除是要先判断是这个进程加的锁。再删，但是要保证原子操作，只能用lua脚本删除
+4.终极解决方案是使用zookeeper的分布式锁锁
+
+
+zookeeper的分布式锁
+1.创建一个分布式锁的时候会产生一个parentlock,当其他进程来创建锁的时候会按顺序排队。
+2.当一个进程崩溃时心跳断开，这个锁的节点会自动删除，后面排队的节点等待会按顺序获得锁
+3.优点。不用考虑进程崩溃带来的问题，也不用考虑误删除的问题，缺点。性能第一点会阻塞
+
+ 
+
+
+
+
+

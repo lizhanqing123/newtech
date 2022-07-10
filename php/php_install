@@ -1,0 +1,99 @@
+yum install -y make cmake gcc gcc-c++ autoconf automake libpng-devel libjpeg-devel zlib libxml2-devel ncurses-devel bison libtool-ltdl-devel libiconv libmcrypt mhash mcrypt pcre-devel openssl-devel freetype-devel libcurl-devel
+
+wget https://www.php.net/distributions/php-7.4.1.tar.gz
+
+tar -zxvf php-7.4.1.tar.gz
+
+./configure \
+--prefix=/opt/php \
+--with-config-file-scan-dir=/etc/php.d \
+--with-config-file-path=/opt/php/etc \
+--with-mysql \
+--with-mysqli \
+--with-pdo_mysql \
+--with-iconv-dir \
+--with-zlib \
+--with-libxml-dir \
+--enable-xml \
+--with-curl \
+--enable-fpm \
+--enable-mbstring \
+--with-gd \
+--with-openssl \
+--with-mhash \
+--enable-sockets \
+--with-xmlrpc \
+--enable-zip -enable-soap \
+--with-freetype-dir \
+--disable-fileinfo
+
+
+缺少oniguruma的解决办法
+wget https://github.com/kkos/oniguruma/archive/v6.9.4.tar.gz -O oniguruma-6.9.4.tar.gz 
+
+tar -xvf oniguruma-6.9.4.tar.gz
+
+ cd oniguruma-6.9.4/
+
+./autogen.sh
+
+./configure --prefix=/usr --libdir=/lib64  //64位的系统一定要标识  --libdir=/lib64 否则还是不行
+make && make install
+
+报错：configure: error: Package requirements (libxml-2.0 >= 2.7.6) were not met:
+No package ‘libxml-2.0’ found
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+解决： yum install libxml2-devel
+
+报错：configure: error: Package requirements (sqlite3 > 3.7.4) were not met:
+No package ‘sqlite3’ found
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+解决:yum install sqlite-devel
+
+报错：configure: error: Package requirements (libcurl >= 7.15.5) were not met:
+No package ‘libcurl’ found
+Consider adjusting the PKG_CONFIG_PATH environment variable if you
+installed software in a non-standard prefix.
+解决：yum install libcurl-devel
+
+configure: error: off_t undefined; check your library configuration
+ yum install -y epel-release
+ yum install -y oniguruma oniguruma-devel
+ 
+ 
+ 
+ make && make install
+ 
+ 
+ cp /opt/php/sbin/php-fpm /sbin/
+ 
+ 
+cd /opt/php/etc/
+
+cp php-fpm.conf.default php-fpm.conf
+cp php-fpm.d/www.conf.default php-fpm.d/www.conf
+
+启动php-fpm
+php-fpm -y /opt/php/etc/php-fpm.conf -R
+修改/etc/profile
+export PATH=$PATH:$GOROOT/bin:/opt/php/bin
+source /etc/profile
+php -v
+
+安装Composer
+php -r "copy('https://install.phpcomposer.com/installer', 'composer-setup.php');"
+php composer-setup.php
+php -r "unlink('composer-setup.php');"
+sudo mv composer.phar /usr/local/bin/composer
+composer -V
+
+安装laravel
+composer global require laravel/installer
+
+添加composer到系统环境变量
+$HOME/.config/composer/vendor/bin
+
+创建一个项目
+laravel new blog

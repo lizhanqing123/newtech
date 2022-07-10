@@ -1,0 +1,15 @@
+SELECT a1,b1
+FROM
+(
+	SELECT a1, b1 FROM public."B"
+)T2
+
+
+select gameopenid,gameappid,jiazhangcommid,xyappid,xyopenid 
+FROM
+(
+select gameopenid,gameappid,jiazhangcommid,xyappid,xyopenid,2 as number from t_dw_tgclub_xyapp_openid_to_xyopenid
+UNION all
+select gamexyopenid,gameappid,gamecommid,xyappid,xyopenid,1 as number from ieg_tdbank::tgclub_dsl_vipgameopenidtoxyopenid_fht0 where tdbank_imp_date >= '2017090712' group by gamexyopenid,gameappid,gamecommid,xyappid,xyopenid
+)a
+group by gameopenid,gameappid,jiazhangcommid,xyappid,xyopenid HAVING sum(number) = 1

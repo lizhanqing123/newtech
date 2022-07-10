@@ -1,0 +1,15 @@
+vipoidbsvr_msglog_20161110_0000.log:300|cmd=300&uin=190391007&old_level=0&new_level=4&is_active=0|22|0|2016-11-10 00:00:00
+vipoidbsvr_msglog_20161110_0000.log:300|cmd=300&uin=339738772&old_level=0&new_level=4&is_active=0|22|0|2016-11-10 00:00:00
+vipoidbsvr_msglog_20161110_0000.log:300|cmd=300&uin=276249324&old_level=0&new_level=4&is_active=0|36|0|2016-11-10 00:00:00
+vipoidbsvr_msglog_20161110_0000.log:300|cmd=300&uin=339738936&old_level=0&new_level=4&is_active=0|22|0|2016-11-10 00:00:00
+
+
+
+awk -F '[ &]' '{print substr($2,5)}' bulu  //将第2列里面的第5个字符开始截取,-F表示指定分隔符
+
+
+!a[$0]++是awk里面的去重，sort排序后文件去重
+netstat -at | grep 10010 | awk '{print $5}' | awk -F '[:]' '{print$1}' | awk '!a[$0]++' >> a.txt && sort a.txt | uniq > b.txt
+
+
+

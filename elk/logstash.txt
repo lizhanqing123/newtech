@@ -1,0 +1,3 @@
+docker run -d --privileged -u root --name=logstash -p 5044:5044 -v /data/elk/logstash/logstash.yml:/usr/share/logstash/config/logstash.y
+ml -v /data/elk/logstash/conf.d/jackpot.conf:/usr/share/logstash/conf.d/jackpot.conf -v /root/jackpot/Nutfun/bin/logs:/usr/share/logstas
+h/logs logstash:7.12.0

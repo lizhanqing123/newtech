@@ -1,0 +1,10 @@
+下载goland linux版本
+运行goland.sh安装
+账号：
+yan0529@live.com
+密码:
+Yan8189743
+
+在IDE里面 file->setting->go里面设置好goroot和gopath。就可以找到定义
+
+运行慢记得调虚拟机的内存到最大

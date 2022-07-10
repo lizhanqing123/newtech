@@ -1,0 +1,60 @@
+select '999001', parse_simple_json(a.kv,'cDeviceNet')[0] as net, parse_simple_json(a.kv,'url')[0] as url, parse_simple_json(a.kv,'cDeviceId')[0] as deviceid, avg(parse_simple_json(a.kv,'time')[0]) as time, count(1) as num from teg_mta_intf::ieg_xinyueclub a 
+JOIN
+(
+	select '999000', parse_simple_json(kv,'cDeviceNet')[0] as net, parse_simple_json(kv,'url')[0] as url, parse_simple_json(kv,'cDeviceId')[0] as deviceid, avg(parse_simple_json(kv,'time')[0]) as time, count(1) as num from teg_mta_intf::ieg_xinyueclub where ei = '999000' group by parse_simple_json(kv,'cDeviceNet')[0],parse_simple_json(kv,'url')[0],parse_simple_json(kv,'cDeviceId')[0]
+)b
+on (
+parse_simple_json(a.kv,'cDeviceId')[0] =
+ b.deviceid)
+where a.ei = '999001' group by parse_simple_json(a.kv,'cDeviceNet')[0],parse_simple_json(a.kv,'url')[0],parse_simple_json(a.kv,'cDeviceId')[0]
+
+
+
+
+CREATE TABLE IF NOT EXISTS `tb_tgclub_AppOfflinePackTime` (
+  `net` STRING COMMENT '网络类型',
+  `url` STRING COMMENT '网址',
+  `deviceid` STRING COMMENT '设备ID',
+  `count1` BIGINT COMMENT '统计计数',
+  `use_offline_time` BIGINT COMMENT '使用离线包的平均时间',
+  `not_use_offline_time` BIGINT COMMENT '不使用离线包的平均时间'
+) STORED AS FORMATFILE COMPRESS;
+
+
+
+
+insert into tb_tgclub_AppOfflinePackTime (net, url, deviceid, count1, use_offline_time, not_use_offline_time )
+select parse_simple_json(a.kv,'cDeviceNet')[0] as net, parse_simple_json(a.kv,'url')[0] as url, parse_simple_json(a.kv,'cDeviceId')[0] as deviceid, 0, avg(parse_simple_json(a.kv,'time')[0]) as time, count(1) as num from teg_mta_intf::ieg_xinyueclub a 
+JOIN
+(
+	select '999000', parse_simple_json(kv,'cDeviceNet')[0] as net, parse_simple_json(kv,'url')[0] as url, parse_simple_json(kv,'cDeviceId')[0] as deviceid, avg(parse_simple_json(kv,'time')[0]) as time, count(1) as num from teg_mta_intf::ieg_xinyueclub where ei = '999000' group by parse_simple_json(kv,'cDeviceNet')[0],parse_simple_json(kv,'url')[0],parse_simple_json(kv,'cDeviceId')[0]
+)b
+on (
+parse_simple_json(a.kv,'cDeviceId')[0] =
+ b.deviceid)
+where a.ei = '999001' group by parse_simple_json(a.kv,'cDeviceNet')[0],parse_simple_json(a.kv,'url')[0],parse_simple_json(a.kv,'cDeviceId')[0]
+
+
+
+
+SELECT c.net,c.url,c.deviceid, c.num, 0, c.time
+(
+select parse_simple_json(a.kv,'cDeviceNet')[0] as net, parse_simple_json(a.kv,'url')[0] as url, parse_simple_json(a.kv,'cDeviceId')[0] as deviceid, count(1) as num, avg(parse_simple_json(a.kv,'time')[0]) as time from teg_mta_intf::ieg_xinyueclub a 
+JOIN
+(
+	select '999000', parse_simple_json(kv,'cDeviceNet')[0] as net, parse_simple_json(kv,'url')[0] as url, parse_simple_json(kv,'cDeviceId')[0] as deviceid, avg(parse_simple_json(kv,'time')[0]) as time, count(1) as num from teg_mta_intf::ieg_xinyueclub where ei = '999000' group by parse_simple_json(kv,'cDeviceNet')[0],parse_simple_json(kv,'url')[0],parse_simple_json(kv,'cDeviceId')[0]
+)b
+on (
+parse_simple_json(a.kv,'cDeviceId')[0] =
+ b.deviceid)
+where a.ei = '999001' group by parse_simple_json(a.kv,'cDeviceNet')[0],parse_simple_json(a.kv,'url')[0],parse_simple_json(a.kv,'cDeviceId')[0]
+)c
+
+
+CREATE TABLE IF NOT EXISTS `tb_tgclub_appofflinedata` (
+  `net` STRING COMMENT '网络类型',
+  `url` STRING COMMENT '网址',
+  `deviceid` STRING COMMENT '设备ID',
+  `type` STRING COMMENT '类型',
+  `time` BIGINT COMMENT '不使用离线包的平均时间'
+) STORED AS FORMATFILE COMPRESS;

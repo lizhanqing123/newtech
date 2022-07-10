@@ -1,0 +1,4 @@
+use information_schema;
+从表格TABLES中可以查到表的数据（数据块，索引数据）
+TABLE_SCHEMA字段代表数据库
+TABLE_NAME代表数据表

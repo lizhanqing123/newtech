@@ -1,0 +1,33 @@
+使用虚拟机centos7.6 1810试验成功
+1.安装
+建议使用centos7.6以上版本操作系统,默认自带python2.7
+yum -y install gcc-c++
+安装python3
+wget https://www.python.org/ftp/python/3.8.0/Python-3.8.0.tgz
+tar -zxvf Python-3.8.0.tgz
+./configure --prefix=/usr/local/python3
+make && make install
+ln -s /usr/local/python3/bin/python3.8 /usr/local/bin/python3
+
+安装pip
+yum -y install epel-release
+yum clear all
+yum makecache
+yum -y install python-pip
+
+安装dnspython
+wget http://www.dnspython.org/kits/1.16.0/dnspython-1.16.0.tar.gz
+
+tar -zxvf dnspython-1.16.0.tar.gz
+
+cd dnspython-1.16.0/
+
+python setup.py install
+
+更新pip,国内源,国外源会报很多443错误(HTTPS读取)
+python -m pip install --upgrade pip -i https://pypi.tuna.tsinghua.edu.cn/simple
+
+pip install --upgrade setuptools
+
+安装tensorflow
+pip install -i https://pypi.tuna.tsinghua.edu.cn/simple tensorflow==1.2.0

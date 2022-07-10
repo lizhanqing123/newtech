@@ -1,0 +1,20 @@
+1.对指定机器授权
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'100.97.166.47' IDENTIFIED BY 'va@vip' WITH GRANT OPTION; 
+
+2.对所有外网机授权
+
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'%' IDENTIFIED BY 'va@vip' WITH GRANT OPTION; 
+
+flush privileges
+
+3.对本机授权,注意。不能用127.0.0.1。对外网机授权不能在服务器内部登录
+GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY 'va@vip' WITH GRANT OPTION;
+
+
+3.对指定用户授予指定权限:
+GRANT select,update,insert,delete on *.* TO 'zengxiao'@'%' IDENTIFIED BY 'MiTuo123!@#@' WITH GRANT OPTION;
+flush privileges
+
+4.回收权限：
+revoke all privileges on *.* from 'root'@'%';
+flush privileges

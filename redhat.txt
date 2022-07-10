@@ -1,0 +1,32 @@
+1234
+1.卸载原来有关yum的rpm包
+rpm -qa | grep yum | xargs rpm -e --nodeps
+
+
+2.在163镜像网站下载CentOS有关yum的rpm包（e.g：wget http://mirrors.163.com/centos/6/os/x86_64/Packages/xxx.rpm）
+python-iniparse-0.3.1-2.1.el6.noarch.rpm
+python-urlgrabber-3.9.1-11.el6.noarch.rpm
+yum-3.2.29-81.el6.centos.noarch.rpm
+yum-metadata-parser-1.1.2-16.el6.x86_64.rpm
+yum-plugin-fastestmirror-1.1.30-41.el6.noarch.rpm
+yum-updateonboot-1.1.30-41.el6.noarch.rpm
+
+
+
+
+3 删掉：rpm -e python-urlgrabber
+rpm -ivh python-urlgrabber-3.9.1-11.el6.noarch.rpm
+rpm -ivh python-iniparse-0.3.1-2.1.el6.noarch.rpm
+rpm -ivh yum-*
+
+
+4.下载并修改repo配置文件
+wget http://mirrors.163.com/.help/CentOS6-Base-163.repo
+将其中的$releasever更改为6
+修改好之后，将该文件放到/etc/yum.repo.d中
+
+5
+yum --version
+如果不需要yum的订阅，可以执行：rpm -qa | grep subsc* | xargs rpm -e --nodeps删掉
+执行yum clean all清除缓存
+执行yum makecache获取yum列表

@@ -1,0 +1,20 @@
+1. 股票买卖,可以买卖N次。买了后卖掉了才能买
+思路:就是求相邻2个元素差值（当大于0的时候），的和
+
+int maxProfit(vector<int>& prices) {
+	int pro=0;
+	for(int i=1;i<prices.size();i++)
+		pro += max(prices[i]-prices[i-1],0);
+	return pro;
+}
+
+2.寻找数组中只出现一次的数字,并且只能遍历一次，并且不能使用额外空间
+思路:异或预算。相同的数会得到0，所以剩下来的就是只出现一次的数
+int singleNumber(vector<int>& nums) {
+	int tmp = 0;
+	for(int i = 0; i<nums.size(); i++)
+	{
+		tmp ^= nums[i];
+	}
+	return tmp;
+}

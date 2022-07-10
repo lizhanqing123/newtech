@@ -1,0 +1,46 @@
+#!/usr/bin/python
+
+import tensorflow as tf
+import numpy as np
+
+x1 = tf.placeholder(tf.float32, [3])
+
+yTrain = tf.placeholder( tf.float32 )
+
+w = tf.Variable( tf.zeros([3]), tf.float32 )
+
+wn = tf.nn.softmax(w)   #对w进行规范，所有w的和不能超过1,后面用这个规范后的wn
+
+n = x1 * wn  
+
+y = tf.reduce_sum( n )
+
+loss = tf.abs( y - yTrain )
+
+optimizer = tf.train.RMSPropOptimizer( 0.1 )
+
+train = optimizer.minimize( loss )
+
+
+sess = tf.Session()
+
+init = tf.global_variables_initializer()
+
+sess.run(init)
+
+#开始训练
+for i in range(10):
+	result = sess.run( [ train, wn, y, yTrain, loss], feed_dict = { x1 : [90,80,70] , yTrain : 85 }) #wn。这些变量也可以去掉,但train去掉会不训练
+	print (result) #打印出来的值就是[train, wn, y, yTrain, loss]训练后的值
+
+	result = sess.run( [ train, wn, y, yTrain, loss], feed_dict = { x1 : [98,95,87] , yTrain : 96 })
+	print (result)
+
+
+#开始预测
+result = sess.run( [ x1, y], feed_dict = { x1 : [90,80,70]  }) 
+print result[1]
+
+print(y.eval(session=sess,feed_dict={ x1 : [80,80,80]}))
+
+

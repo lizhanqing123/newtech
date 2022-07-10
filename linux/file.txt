@@ -1,0 +1,6 @@
+1.切割文件
+split -l 2 b.txt c
+
+
+2.取文件的前3-25行
+sed -n '3,25p' file > newfile

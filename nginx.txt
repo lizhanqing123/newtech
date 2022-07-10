@@ -1,0 +1,5 @@
+访问路径不需要文件后缀访问：
+
+        location / {
+            try_files $uri $uri/ $uri.html?$args;
+        }

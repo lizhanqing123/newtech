@@ -1,0 +1,26 @@
+配置文件 /etc/systemd/system/bitcoin.service
+启动必须全路径，不可以先cd进入目录在启动。因此进程内所有代码的路径相关都要全路径
+如果进程内部使用了daemon.则Type=forking
+
+
+[Unit]
+Description=bitcoin
+After=network.target
+  
+[Service]
+Type=simple
+PIDFile=/run/bitcoin.pid
+ExecStart=/root/Code/WebSocket/bitcoin/bitcoin -log_dir=./logs
+ExecReload=/bin/kill -s HUP $MAINPID
+ExecStop=/bin/kill -s QUIT $MAINPID
+PrivateTmp=true
+User=root
+Restart=always                                                                                                                                                                               
+  
+[Install]
+WantedBy=multi-user.target
+
+
+systemctl daemon-reload
+systemctl start bitcoin.service
+systemctl stop bitcoin.service

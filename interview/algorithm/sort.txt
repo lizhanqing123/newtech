@@ -1,0 +1,64 @@
+1.冒泡排序
+关键点:第2层循环不要循环到底
+void sort( int a[], int len )
+{
+    for( int i = 0; i<len; i++)
+     for( j = 0; j<len - i - 1;j++)
+     {   
+        if (a[j] > a[j+1])
+        {
+           swap( a[j], a[j+1]);
+        }
+     }
+}
+
+2.快速排序
+关键点：那第一个数当轴，高位往低位走，比轴小的数交换到低位，比轴小的数交换到高位。轴最后归位
+void Qsort(int a[], int low, int high)
+{
+    if(low >= high)
+    {
+        return;
+    }
+    int first = low;
+    int last = high;
+    int key = a[first];/*用字表的第一个记录作为枢轴*/
+ 
+    while(first < last)
+    {
+        while(first < last && a[last] >= key)
+        {
+            --last;
+        }
+ 
+        a[first] = a[last];/*将比第一个小的移到低端*/
+ 
+        while(first < last && a[first] <= key)
+        {
+            ++first;
+        }
+         
+        a[last] = a[first];   
+        /*将比第一个大的移到高端*/
+    }
+    a[first] = key;/*枢轴记录到位*/
+    Qsort(a, low, first-1);
+    Qsort(a, first+1, high);
+}
+
+3.特殊排序
+对100万个数，所有的数都小于10万且大于0
+int *p = new int[100000];
+memet(p, 0, sizeof(int)*100000);
+for(int i = 0; i<1000000;  i++)
+{
+     *(p+a[i]) = *(p+a[i]) + 1;
+}
+
+for (int i = 0; i<100000; i++)
+{
+    for( j =0; j<p[i]; j++)
+    {
+        count << i;      
+    }
+}

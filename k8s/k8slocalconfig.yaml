@@ -1,0 +1,475 @@
+#------ proxysrv ----------------- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: proxysrv
+spec:
+  minReadySeconds: 3
+  replicas: 1
+  selector:
+    matchLabels:
+      app: proxysrv
+  template:
+    metadata:
+      labels:
+        app: proxysrv
+    spec:      
+      containers:
+      - name: proxysrv
+        image: 192.168.1.70:5000/bin_proxysrv:latest
+        #resources resources:
+        #resources   limits:
+        #resources     cpu: 100m
+        #resources     memory: 100Mi        
+        env:
+        - name: mysqladdress
+          value: root:nutfun@(172.16.40.100:3306)/nutfun?charset=utf8
+        - name: CertName
+          value: fuwin
+        ports:
+        - containerPort: 8080
+        - containerPort: 443
+        volumeMounts:
+        - mountPath: /etc/localtime
+          name: time-path
+          readOnly: true   
+        - mountPath: /jackpot/bin/logs
+          name: logs-dir 
+        - mountPath: /jackpot/bin/static/
+          name: static-path   
+      volumes:
+      - name: logs-dir
+        hostPath:
+          path: /root/jackpot/bin/logs/
+          type: DirectoryOrCreate
+      - name: time-path
+        hostPath:
+          path: /etc/localtime
+      - name: static-path
+        hostPath:
+          path: /root/jackpot/Nutfun/bin/static   
+      nodeName: k8s-node01    
+      #nodeSelector: 
+        #proxysrv: proxysrv
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: proxysrv
+spec:
+  selector:
+    app: proxysrv
+  ports:
+  - port: 18080
+    name: proxy8080
+    targetPort: 8080
+    nodePort: 8080 
+  - port: 1443
+    name: proxy443
+    targetPort: 443
+    nodePort: 443         
+  type: NodePort 
+---
+
+
+#------ loginsrv ----------------- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loginsrv
+spec:
+  minReadySeconds: 3
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loginsrv
+  template:
+    metadata:
+      labels:
+        app: loginsrv
+    spec:      
+      containers: 
+      - name: loginsrv
+        image: 192.168.1.70:5000/bin_loginsrv:latest
+        #resources resources:
+        #resources   limits:
+        #resources     cpu: 100m
+        #resources     memory: 100Mi        
+        env:
+        - name: mysqladdress
+          value: root:nutfun@(172.16.40.100:3306)/nutfun?charset=utf8
+        ports:
+        - containerPort: 8081
+        volumeMounts:
+        - mountPath: /etc/localtime
+          name: time-path
+          readOnly: true   
+        - mountPath: /jackpot/bin/logs
+          name: logs-dir 
+      volumes:
+      - name: logs-dir
+        hostPath:
+          path: /root/jackpot/bin/logs/
+          type: DirectoryOrCreate
+      - name: time-path
+        hostPath:
+          path: /etc/localtime           
+      # nodeName: k8s-node04    
+      #nodeSelector: 
+        #loginsrv: loginsrv
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: loginsrv
+spec:
+  selector:
+    app: loginsrv
+  ports:
+  - port: 18081
+    name: proxy8081
+    targetPort: 8081 
+---        
+#------ spinsrv -----------------
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: spinsrv
+spec:
+  minReadySeconds: 3
+  replicas: 2
+  selector:
+    matchLabels:
+      app: spinsrv
+  template:
+    metadata:
+      labels:
+        app: spinsrv
+    spec:      
+      containers: 
+      - name: spinsrv
+        image: 192.168.1.70:5000/bin_spinsrv:latest
+        imagePullPolicy: Always
+        #resources resources:
+        #resources   limits:
+        #resources     cpu: 100m
+        #resources     memory: 100Mi        
+        env:
+        - name: mysqladdress
+          value: root:nutfun@(172.16.40.100:3306)/nutfun?charset=utf8
+        - name: ENV
+          value: DEBUG
+        ports:
+        - containerPort: 8082
+        volumeMounts:
+        - mountPath: /etc/localtime
+          name: time-path
+          readOnly: true   
+        - mountPath: /jackpot/bin/logs
+          name: logs-dir 
+      volumes:
+      - name: logs-dir
+        hostPath:
+          path: /root/jackpot/bin/logs/
+          type: DirectoryOrCreate
+      - name: time-path
+        hostPath:
+          path: /etc/localtime 
+      # nodeName: k8s-node04    
+      #nodeSelector: 
+        #spinsrv: spinsrv
+---
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: spinsrv
+spec:
+  selector:
+    app: spinsrv
+  ports:
+  - port: 18082
+    name: proxy8082
+    targetPort: 8082
+---
+#------ hallsrv ----------------- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hallsrv
+spec:
+  minReadySeconds: 3
+  replicas: 1
+  selector:
+    matchLabels:
+      app: hallsrv
+  template:
+    metadata:
+      labels:
+        app: hallsrv
+    spec:      
+      containers: 
+      - name: hallsrv
+        image: 192.168.1.70:5000/bin_hallsrv:latest
+        #resources resources:
+        #resources   limits:
+        #resources     cpu: 100m
+        #resources     memory: 100Mi        
+        env:
+        - name: mysqladdress
+          value: root:nutfun@(172.16.40.100:3306)/nutfun?charset=utf8
+        ports:
+        - containerPort: 8083
+        volumeMounts:
+        - mountPath: /etc/localtime
+          name: time-path
+          readOnly: true   
+        - mountPath: /jackpot/bin/logs
+          name: logs-dir
+        - mountPath: /jackpot/bin/uploads
+          name: uploads-dir           
+      volumes:
+      - name: logs-dir
+        hostPath:
+          path: /root/jackpot/bin/logs/
+          type: DirectoryOrCreate
+      - name: time-path
+        hostPath:
+          path: /etc/localtime
+      - name: uploads-dir
+        hostPath:
+          path: /uploads
+          type: DirectoryOrCreate        
+      # nodeName: k8s-node04             
+      #nodeSelector: 
+        #hallsrv: hallsrv
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hallsrv
+spec:
+  selector:
+    app: hallsrv
+  ports:
+  - port: 18083
+    name: proxy8083
+    targetPort: 8083 
+---
+#------ gatewaysrv ----------------- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gatewaysrv
+spec:
+  minReadySeconds: 3
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gatewaysrv
+  template:
+    metadata:
+      labels:
+        app: gatewaysrv
+    spec:      
+      containers:
+      - name: gatewaysrv
+        image: 192.168.1.70:5000/bin_gatewaysrv:latest
+        #resources resources:
+        #resources   limits:
+        #resources     cpu: 100m
+        #resources     memory: 100Mi        
+        env:
+        - name: mysqladdress
+          value: root:nutfun@(172.16.40.100:3306)/nutfun?charset=utf8
+        - name:  GOOGLE_APPLICATION_CREDENTIALS
+          value: /jackpot/bin/csv/funwingame-c0fad-firebase-adminsdk-v5c82-a730335698.json  
+        ports:
+        - containerPort: 9000
+        volumeMounts:
+        - mountPath: /etc/localtime
+          name: time-path
+          readOnly: true   
+        - mountPath: /jackpot/bin/logs
+          name: logs-dir 
+      volumes:
+      - name: logs-dir
+        hostPath:
+          path: /root/jackpot/bin/logs/
+          type: DirectoryOrCreate
+      - name: time-path
+        hostPath:
+          path: /etc/localtime 
+      # nodeName: k8s-node04    
+      #nodeSelector: 
+        #gatewaysrv: gatewaysrv
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gatewaysrv
+spec:
+  selector:
+    app: gatewaysrv
+  ports:
+  - port: 19000
+    name: proxy8083
+    targetPort: 9000
+    nodePort: 9000      
+  type: NodePort
+---
+
+#------ timer ----------------- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: timersrv
+spec:
+  minReadySeconds: 3
+  replicas: 1
+  selector:
+    matchLabels:
+      app: timersrv
+  template:
+    metadata:
+      labels:
+        app: timersrv
+    spec:      
+      containers:
+      #------ timersrv ----------------- 
+      - name: timersrv
+        image: 192.168.1.70:5000/bin_timersrv:latest
+        #resources resources:
+        #resources   limits:
+        #resources     cpu: 100m
+        #resources     memory: 100Mi        
+        env:
+        - name: mysqladdress
+          value: root:nutfun@(172.16.40.100:3306)/nutfun?charset=utf8
+        - name:  GOOGLE_APPLICATION_CREDENTIALS
+          value: /jackpot/bin/csv/funwingame-c0fad-firebase-adminsdk-v5c82-a730335698.json   
+        volumeMounts:
+        - mountPath: /etc/localtime
+          name: time-path
+          readOnly: true           
+        - mountPath: /jackpot/bin/logs
+          name: logs-dir           
+      volumes:
+      - name: logs-dir
+        hostPath:
+          path: /root/jackpot/bin/logs/
+          type: DirectoryOrCreate
+      - name: time-path
+        hostPath:
+          path: /etc/localtime 
+      # nodeName: k8s-node04     
+      #nodeSelector: 
+        #timer-web: timer-web
+--- 
+#------ web ----------------- 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: websrv
+  labels:
+    operator: live-media-watch-pod
+
+spec:
+  minReadySeconds: 3
+  replicas: 1
+  selector:
+    matchLabels:
+      app: websrv
+  template:
+    metadata:
+      labels:
+        app: websrv
+    spec:
+      serviceAccount: live-media-watch-pod    
+      containers:
+      #------ websrv ----------------- 
+      - name: websrv
+        image: 192.168.1.70:5000/bin_websrv:latest
+        resources:
+          limits:
+            cpu: 800m
+            memory: 1Gi
+        env:
+        - name: mysqladdress
+          value: root:nutfun@(172.16.40.100:3306)/nutfun?charset=utf8  
+        ports:
+        - containerPort: 8000
+        - containerPort: 80
+        volumeMounts:
+        - mountPath: /etc/localtime
+          name: time-path
+          readOnly: true           
+        - mountPath: /jackpot/bin/logs
+          name: logs-dir  
+      volumes:
+      - name: logs-dir
+        hostPath:
+          path: /root/jackpot/bin/logs/
+          type: DirectoryOrCreate
+      - name: time-path
+        hostPath:
+          path: /etc/localtime 
+      # nodeName: k8s-node04     
+      #nodeSelector: 
+        #timer-web: timer-web
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: websrv
+spec:
+  selector:
+    app: websrv
+  ports:
+  - port: 18000
+    name: web8000
+    targetPort: 8000
+    nodePort: 8000
+  - port: 180
+    name: web80
+    targetPort: 80
+    nodePort: 80                     
+  type: NodePort
+
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: pod-reader
+rules:
+- apiGroups: [""]
+  resources: ["pods","nodes","namespaces","services","serviceaccounts"]
+  verbs: ["get", "watch", "list","create","update","patch"]
+
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: read-pods-account
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: live-media-watch-pod
+  namespace: default
+roleRef:
+  kind: ClusterRole
+  name: pod-reader
+  apiGroup: rbac.authorization.k8s.io
+
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: live-media-watch-pod
+  namespace: default
+
+
+         

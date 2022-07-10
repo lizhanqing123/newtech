@@ -1,0 +1,13 @@
+tcpdump -i any -Xnps0 port 6677
+
+tcpdump -i any -Xnps0 dst host github.com
+
+
+抓包不限字节数，源ip是oss.api.tof.oa.com，把结果dump到alarm.cpp中使用wireshark看
+tcpdump -s0 -i any -Xnps0 port 80 and dst oss.api.tof.oa.com -w alarm.cap
+
+
+
+
+32(redisobect)+32(key)+160(value)=224
+10亿用户*224=2240亿字节=224G

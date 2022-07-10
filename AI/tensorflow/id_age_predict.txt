@@ -1,0 +1,74 @@
+#!/usr/bin/python
+import random,time
+from datetime import date, timedelta
+import tensorflow as tf
+
+
+def CreateIDCard():
+	ProvinceID = ['110000', '120100', '120102', '120103']
+	townNum = random.choice(ProvinceID)
+	timeDate = time.time()
+	yearDate = time.strftime("%Y", time.localtime(timeDate))
+	yearNum = random.randint(1980, int(yearDate)-18)
+	age = 2020-yearNum
+	someDate = date.today() + timedelta(days=random.randint(1, 366))
+	dateNum = someDate.strftime("%m%d")
+	lastThree = random.randint(100, 999)
+	id17 = str(townNum) + str(yearNum) + str(dateNum) + str(lastThree)
+	count = 0
+	weight = [7, 9, 10, 5, 8, 4, 2, 1, 6, 3, 7, 9, 10, 5, 8, 4, 2]
+	CheckCode = ["1", "0","9", "8", "7", "6", "5", "4", "3", "2", "5"]
+	for i in range(0, len(id17)):
+		count = count + weight[i]*int(id17[i])
+	CheckNum = count % 11
+	IDCard = id17 + CheckCode[CheckNum]
+	return IDCard,age
+
+
+
+yTrain = tf.placeholder( tf.float32 )
+x1 = tf.placeholder( tf.float32,[18] )
+xr = tf.reshape( x1, [1,18] )
+w1 = tf.Variable( tf.random_normal( [18,4]), tf.float32 )
+n1 = tf.matmul(xr,w1)
+
+w2 = tf.Variable( tf.random_normal( [4,1]), tf.float32 )
+
+n2 = tf.matmul( n1, w2)
+
+y1 = tf.reshape(n2,[1])
+
+y = tf.reduce_sum(y1)
+
+loss = tf.abs(y-yTrain)
+
+optimizer = tf.train.RMSPropOptimizer(0.01)
+train = optimizer.minimize(loss)
+sess = tf.Session()
+
+sess.run( tf.global_variables_initializer() )
+
+
+for i in range(100000):
+	idcard,age = CreateIDCard()
+	print("create id=",idcard)
+	idarray = []
+	for v in idcard:
+		idarray.append(int(v,10))
+
+	result = sess.run( [train, xr, yTrain, y, loss], feed_dict={ x1:idarray, yTrain:age } )
+	print (result)
+	print (result[4])
+
+
+idcard,age = CreateIDCard()
+idarray = []
+for v in idcard:
+	idarray.append(int(v,10))
+print("start predit {0}".format(idcard))
+
+predict = y.eval(session=sess,feed_dict={ x1 : idarray})
+print("predict is {0}, actual is {1}".format(predict, age))
+
+
+

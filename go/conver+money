@@ -1,0 +1,34 @@
+
+main_test.go
+
+package main
+
+import (
+	monkey "github.com/agiledragon/gomonkey"
+	"errors"
+	"fmt"
+	. "github.com/smartystreets/goconvey/convey"
+	"testing"
+)
+
+func Add(a, b int) (int,error) {
+	if a < 0 || b < 0{
+		return 0,errors.New("param can not below zero")
+	}
+	return a + b,nil
+}
+
+
+func Test_Add(t *testing.T) {
+	Convey("将两数相加", t, func() {
+
+		monkey.ApplyFunc( Add,func (a, b int) (int,error) {
+			fmt.Println("Patch SUcessful!")
+			return 0, nil})
+		_,err := Add(-1,-2)
+		So(err, ShouldBeNil)
+
+	})
+}
+
+go test -v ./... -gcflags "all=-N -l"

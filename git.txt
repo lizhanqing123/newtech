@@ -1,0 +1,129 @@
+0.安装git
+yum install curl-devel expat-devel gettext-devel \
+  openssl-devel zlib-devel
+
+yum -y install git-core
+
+使用码云的git
+1.设置git客户端 账号
+git config --global user.name "188568204@qq.com"
+git config --global user.email "188568204@qq.com"
+
+
+2.生成密钥和公钥
+cd /root/.ssh/
+ssh-keygen -t rsa -C "188568204@qq.com"  //这里一路回车不要输入任何东西不然会失败
+复制id_rsa.pub里的所有内容，粘贴到gitee里面个人账户的公钥里面，
+
+
+3.下载代码
+git clone git@gitee.com:yanxiang1989/kalogritithm.git Code
+
+
+4.提交代码
+Access denied: Cannot push code by Deploy Public Key
+就是因为公钥没有设置到自己的账户里面，不要设置到项目的公钥里，公钥一粘贴。标题就能自动识别188568204@@qq.com,注意不要复制到私钥
+
+
+5.架设自己的git服务仓库
+1）创建用户
+useradd git，然后切换到git用户，不然最后别人push会失败，这个git代表一个仓库项目。不同的项目建不同个
+2）创建文件夹
+mkdir /home/git/srv/sample.git
+sudo chown -R git:git sample.git
+3)创建git仓库
+git init --bare sample.git
+4)远程下载代码:,提示下载空的仓库不要紧
+git clone git@127.0.0.1:/home/git/srv/sample.git           //克隆这步不需要权限，可能需要输入git登录密码
+
+然后git config,设置自己的身份，把自己的身份的密钥追加到服务器的/home/git/.ssh/authorized_keys里
+
+就可以提交了
+
+
+
+
+git 常规操作
+提交代码：
+git add filename
+git add -A //添加所有改动的文件
+git reset HEAD //撤销add操作
+git commit filename -m"reson" //提交到本地仓库
+git push                                   //提交到远程仓
+git push origin VipUserServer_1219  //提交到远程子仓库
+git push -u origin master
+
+
+拉取代码:
+
+git branch 查看分支情况
+git remote -v 查看远端url
+git clone url 拉下代码。默认处于master分支
+git checkout branchname 切换到想到的分支
+
+
+取消本地改变
+git checkout aa.txt
+
+显示所有分支
+git branch -a
+
+切换到指定分支,如果没有则创建
+git checkout -b remotes/origin/3.0-dev
+
+创建分支后要推送到远程
+git push --set-upstream origin 3.0-dev
+
+推送分支到远端
+git push origin HEAD -u
+
+
+从master合并分支dev到master
+首先切到master git checkout master
+git merge dev
+合并完后在远程仓库里代码就合并了
+
+
+抽取代码
+git archive --format tar.gz --output "./c++1.0.tar.gz" master
+
+git pull失败时隐藏本地修改
+git stash
+
+pull后恢复本地修改
+git stash apply
+
+因为有冲突导致git pull失败。删了也恢复不了
+git reset --hard FETCH_HEAD
+
+将本地分支和远程分支关联
+git branch --set-upstream-to=origin/master master
+
+
+创建develop分支:
+
+git branch develop
+git push -u origin develop
+
+创建一个feature分支：
+git checkout -b some-feature develop
+
+开发完毕。将newfeature合并到develop
+git pull origin develop
+git checkout develop
+git merge some-feature
+git push
+git branch -d some-feature
+
+git无法checkout。
+先要从远程同步下分支
+git remote update
+git fetch
+git checkout -b xxxx  origin/xxxxx
+
+
+
+
+
+
+

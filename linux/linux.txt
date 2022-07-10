@@ -1,0 +1,6 @@
+1.netstat | tlnp | grep vip_read_server | grep 10010 ,查看监听端口
+
+2.netstat | anp | grep vip_read_server 查看连接端口
+
+3.免密传输文件
+sshpass -p 123456 scp aa.tar.gz root@192.168.0.1:/root

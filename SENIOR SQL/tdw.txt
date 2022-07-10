@@ -1,0 +1,5 @@
+1.直接指定分区 不用where 要给表一个别名。（注意一般分区名前面有个p_）
+select * from t_dw_tgclub_info partition(p_20120109) t
+
+2.不直接指定分区
+select * from t_dw_tgclub_info where statis_date < 20120112

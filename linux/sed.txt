@@ -1,0 +1,10 @@
+对行操作的工具
+1.替换
+sed -i "s/partten/newstring/g" ./file.txt
+
+例如
+sed -i "s/abc/def/g" ./file.txt
+sed -i "s/[a-z0-9]/def/g" ./file.txt
+
+3.行号操作
+sed -n '3,25p' file > newfile

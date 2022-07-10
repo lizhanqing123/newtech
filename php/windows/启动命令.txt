@@ -1,0 +1,10 @@
+C:\nginx-1.20.2/nginx.exe -p C:\nginx-1.20.2
+
+
+C:\Users\ASUS\Downloads\php-7.4.30-Win32-vc15-x86\php-cgi.exe -b 127.0.0.1:9000 -c C:\Users\ASUS\Downloads\php-7.4.30-Win32-vc15-x86\php.ini
+
+难点：
+1.nginx.conf里面的windows根目录路径必须是"/" 不能是 "\"
+2.windows不支持user 指令不能注释调user nobody
+3.php 文件夹下面php.ini.development改为php.ini
+4.fastcgi_param  SCRIPT_FILENAME  后面的改成$document_root$fastcgi_script_name

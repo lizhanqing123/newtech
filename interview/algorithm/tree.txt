@@ -1,0 +1,92 @@
+1.广度优先遍历2叉树
+关键点:用队列
+void tresevse( Node *root)
+{
+   queue.push( root );
+   while(!queue.empty())
+   {
+       Node *p = queue.pop();
+       print(p->data);
+       queue.push(p->left);
+       queue.push(p->right);
+   }
+}
+
+
+
+2.判断一颗树是否为平衡2叉树
+关键：判断每一个节点都是平衡，整个树才是平衡二叉树
+void Depth( Node *p )
+{
+   if (p->left == NULL && p->right == NULL)
+   {
+	 return 1;
+   }
+   int left = Depth( p->left );
+   int right = Depth( p->right );
+   return max(left, right)+1;   
+}
+
+bool IsBanlance( Node *p)
+{
+    if ( p->right == NULL && p->right == NULL)
+    {
+        return true;
+    }
+    int left = Depth( p->left );
+    int right = Depth( p->right);
+    if (Abs(left - right) >1 )
+    {
+        return false;
+    }
+    return IsBalance( p->right) && IsBalance( p ->right );
+
+
+3.非递归遍历2叉树
+思路：2层循环。外层循环条件是指针非空并且栈不为空
+循环内部：先将左子树全部循环进栈,进栈的都是有元素的，没有NULL，先序在这里直接访问，然后在出栈，只出一个，并把出栈的接到右子树上，中序在这里访问
+2种模式都只有一个访问元素的地方
+
+
+（先序）
+void PreorderTraversal(BinTree BT)
+{
+	BinTree T;
+	std::stack<BinTree> BtStack;
+	T = BT;
+	while (T || !BtStack.empty())
+	{
+		while (T)
+		{
+			BtStack.push(T);
+			printf("%c ", T->Data);
+			T = T->Left;
+		}
+		T = BtStack.top();
+		BtStack.pop();
+		T = T->Right;
+
+	}
+}
+
+(中序)
+void InorderTraversal(BinTree BT)
+{
+	BinTree T;
+	std::stack<BinTree> BtStack;
+	T = BT;
+	while (T || !BtStack.empty())
+	{
+		while (T)
+		{
+			BtStack.push(T);
+			T = T->Left;
+		}
+		T = BtStack.top();
+		BtStack.pop();
+		printf("%c ", T->Data);
+		T = T->Right;
+
+	}
+}
+}

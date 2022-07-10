@@ -1,0 +1,37 @@
+server {
+    listen 80;
+    server_name 101.200.187.138; # 修改为服务器公网 IP 或域名
+    root /var/www/laraveltow/public; # 指向站点根目录的 public 子目录
+
+    add_header X-Frame-Options "SAMEORIGIN";
+    add_header X-XSS-Protection "1; mode=block";
+    add_header X-Content-Type-Options "nosniff";
+
+    index index.html index.htm index.php;
+
+    charset utf-8;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location = /favicon.ico { access_log off; log_not_found off; }
+    location = /robots.txt  { access_log off; log_not_found off; }
+
+    error_page 404 /index.php;
+
+    location ~ \.php$ {
+        fastcgi_pass unix:/var/run/php/php7.4-fpm.sock; # 请注意核对 PHP 版本
+        fastcgi_index index.php;
+        fastcgi_param SCRIPT_FILENAME $realpath_root$fastcgi_script_name;
+        include fastcgi_params;
+    }
+
+    location ~ /\.(?!well-known).* {
+        deny all;
+    }
+}
+
+
+php-fpm配置文件里面的listen的ip地址必须和nginx里面的fastcgi_pass保持一致，可以是ip+port形式
+php-fpm配置文件里面的user和group必须和nginx的用户保持一致

@@ -1,0 +1,98 @@
+1.MyISAM
+不支持事务，外键，表锁，读快速，适合OLAP，数据仓库。离线分析。支持全文索引
+
+2.Innodb
+支持事务，外键，行锁（高并发），适合OLTP. 写入快，SELECT COUNT(*)慢。不保存行数，不支持全文索引、对ACID更好的支持
+
+
+3.Innodb对后台架构
+1.缓冲池，缓冲池大小直接影响数据库的性能，理想中所有数据都在缓冲池中的话，性能和内存数据库是一样的。缓冲池才用LRU算法（最近最少使用算法），即最少使用的页放在尾端。当缓冲池的内存不够的时候，删除最尾端的，当有新读取的页进来的时候进入midpoint，而不是直接插到队头。
+1.MasterThread ,负责将（缓冲池中的）脏页刷到硬盘，大约一次最多刷新100页。一次刷太多页会导致宕机丢失数据，一次刷太少会降低性能
+2.IO Thread 负责处理用户的IO请求
+3.插入缓冲，数据的插入如果在缓冲池中则直接插入（后面由MasterThread直接刷到硬盘），如果不在则插入到InsertBuffer中，InsertBuffer中将索引一致的插入到一个索引页中，由于插入硬盘的位置在一个页中。因此大大提高了效率
+4.两次写，为了避免数据在写入一半的时候宕机。导致数据丢失，在写磁盘前。会将数据写到一个doublewrite buffer中（连续页。写入快）。如果发生崩溃。则将数据从doublewrite buffer拷入
+5.聚集索引-》主键，非聚集索引-》普通索引（非唯一）
+
+4.数据存储
+1.表-》段-》区-》页
+
+表是最大单位
+段分为数据段。索引段。还有回滚段。数据其实是存在叶子节点中的。
+区中有64个页，每一个页都表示了这个页所在B+树的索引层数。页的类型（数据页。索引页），偏移量（物理地址）
+页为最小单位，每页为16KB
+
+5.约束
+1.外键约束，唯一性约束，对错误数据的约束。
+
+6.视图
+视图在内存中，数据库服务重启消失。视图可以把不同的表临时缓存到一起。重新组织数据，起到隐藏表，保护表的作用。
+例子：CREATE VIEW AS SELECT * FROM t WHERE id <> 0
+
+7.B+索引
+B+索引
+聚集索引和辅助索引内部都是B+树的实现
+聚集索引是主键索引。每个叶子节点上有所有行的数据，聚集索引可以在叶子节点直接找到用户需要的数据
+辅助索引保存的是主键的值。查找时根据主键的值进行2次查找，每一次查找是一次IO，在B+树种遍历的时候是IO操作，后面查找数据是在内存中，所以B+树的
+设计是高度2-4,使得IO查找较少
+分析SQL使用的索引类型
+EXPLAIN SELECT * FROM ORDER BY id limit 10
+selecttype:simple
+type:index
+
+8.全文索引（FULL_TEXT_SEARCH）
+全文索引使用倒排索引实现
+把每一个单词作为单词表中的key，数据是documentid,当用户查找类似:select * from a where text like '%china%'时
+从单词表中找到china。然后取出docmentid.和对应的text
+
+
+9。锁
+也是数据库区别于文件系统的一个特性
+MyISAM->表锁
+InnoDB->行锁
+
+共享锁：share lock ->和自己兼容，就是读可以共享进行
+排它锁  x lock -》和所有锁都不兼容
+
+一致性非锁定度
+当读取的事务正在UPDATE或DELETE，事务不会为了获取锁去等待，而是去读取一个快照数据
+事务的隔离性：
+REPEATABLE READ和READ UNCOMMITTED
+REPEATABLE READ的事务隔离性高于READ UNCOMMITTED
+REPEATABLE READ是Innodb默认的事务隔离
+REPEATABLE READ读取事务开始前那行数据的快照，而READ UNCOMMITTED读取数据最新的快照数据，因此。当有别的事务插入数据未提交时。也会被
+READ UNCOMMITTED读到，导致在事务内部2次读的数据不一致。
+
+一致性锁定度
+有的时候用户显示的对读加锁
+SELECT * FROM A LOCK IN SHARE MODE
+
+
+Next-key Lock
+锁定一个范围
+Select * from a where id <5;
+将id小于5都锁住
+
+肮读：
+一个事务读取到了另一个事务未提交的数据，只有在READ UNCOMMITTED下才会发生，在READ REPEATABLE中不会发生
+
+9.死锁
+使用innodb_lock_wait_timeout进行锁等待最长时间限制
+
+10.事务
+事务的特性：
+AOIC 原子性，指事务的操作是不可分割的，要么全部完成，要么全部回滚
+CONSISTENCY 一致性，外键约束，唯一性约束
+IOSLATION。隔离性：不同的事务之间相互不影响。事务过程中不会受到其他事务的影响
+DURABLILTY 持久性到磁盘
+
+11.备份
+冷备：
+逻辑备份。把数据导成SQL，
+mysqldump --all-database > dump.sql
+SELECT * INTO OUTFILE INTO 备份一张表 select * into outfile into '/root/a.txt' from a
+LOAD DATA INFILE恢复备份好的数据
+load data infile '/root/a.txt' into table a
+2进制日志备份
+根据2进制日志恢复到一个时刻点
+mysqlbinlog binlog.0000001 | mysql -uroot -p test
+热备，使用XtraBackup实现在线的备份。使用了Binlog重做日志

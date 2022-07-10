@@ -1,0 +1,122 @@
+1.字符串反转
+char *invert( char *dest )
+{
+    int len = strlen(dest);
+    for( int i = 0; i<len/2; i++)
+    {
+        swap( dest[i], dest[len-i-1]);
+    }
+    return dest;
+}
+
+2.子串查找问题,求目标串中有多少个子串
+
+bool IsCmpOK( const char *src; const char *dst )
+{
+     int len = strlen( dst );
+     for( int i = 0; i<len; i++)
+     {
+        if (src[i] != dst[i])
+        {
+             return false;
+        }
+    }
+    return true;       
+}
+
+int FindSubStr( const char *src, const char *dst )
+{
+    int count = 0;
+    int len1 = strlen( src );
+    int len2 = strlen( dst );
+    for( int i = 0; i< len1 - len2;)
+    {
+        if (IsCmpOK( &src[i], dst))
+        {
+             count++;
+             i = i+len2;       
+        }
+        else
+        {
+            i++;
+        }
+    }
+    return count;
+}
+
+
+3.在一个字符串中找到第一个只出现一次的字符
+思路：关键在如何定义辅助容器，由于字符是char.只有256种可能，因此可以将字符的asi码作为hash值。即定义一个大小256大小的数组，字符的ascii码就是
+数组的索引,value就是出现的次数，
+遍历第2遍时，第一次出现1的元素就是要找得字符
+
+
+4.对输入的字符串中的单词进行排序后输出，例如"bb aa cc"  -> "aa bb cc"
+int GetWords(char *sentence,char *words[])
+{
+    int i=0;
+    char *p;
+    p=strtok(sentence," ");
+    while(p!=NULL)
+    {
+        words[i]=p;
+        i++;
+        p=strtok(NULL," ");
+         
+    }
+    return i;
+}
+void SortStrings(char *strs[],int count)
+{
+    char *p;
+    int i,j,k;
+    for(i=0;i<count;i++){
+        for(j=i+1;j<count;j++)
+        {
+            if(strcmp(strs[i],strs[j])>0)
+            {
+                p=strs[i];
+                strs[i]=strs[j];
+                strs[j]=p;
+            }
+        }
+    }
+}
+
+5.原地删除字符串
+思路:双指针。是则赋值。不是则跳过
+void del_space( char *str )
+{
+	int i = 0;
+	char *p = str;
+	while(*p)
+	{   
+		if ( *p !=  ' ' ) str[i++] = *p; 
+
+		p++;
+	}   
+	str[i] = '\0';                                                                                                                                           
+}
+
+
+6.将一个字符串转化为数字
+
+    total := 0
+    tmp := 0
+    ip := "192.168.1.1"
+    array := strings.Split(ip,".")
+    if len(array) == 4{
+
+        tmp,_ = strconv.Atoi(array[0])
+        total += tmp << 24
+         
+        tmp,_ = strconv.Atoi(array[1])
+        total += tmp << 16
+
+        tmp,_ = strconv.Atoi(array[2])
+        total += tmp << 8
+
+        tmp,_ = strconv.Atoi(array[3])
+        total += tmp << 8
+    }
+    fmt.Println(total)

@@ -1,0 +1,21 @@
+安装：
+
+yum -y install blas blas-devel lapack-devel lapack
+yum -y install seaborn scipy
+yum -y install freetype freetype-devel libpng libpng-devel
+yum -y install python-pip
+yum -y install pytz
+yum -y install python-dateutil
+pip install numpy -i http://pypi.douban.com/simple --trusted-host pypi.douban.com
+
+报错
+nstalling collected packages: pyparsing
+  Found existing installation: pyparsing 2.0.1
+  Cannot uninstall 'pyparsing'. It is a distutils installed project and thus we cannot accurately determine which files belong to it which would lead to only a partial uninstall.
+
+解决：
+  pip install -I pyparsing==2.2.0
+
+pip install matplotlib -i http://pypi.douban.com/simple --trusted-host pypi.douban.com
+
+  

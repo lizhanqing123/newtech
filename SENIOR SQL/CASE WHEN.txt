@@ -1,0 +1,2 @@
+在和count结合使用的时候不能返回1.要返回列名。但是和sum合用的时候返回1
+select count( case when to_number(parse_simple_json(kv,'time')[0]) > 500 then to_number(parse_simple_json(kv,'time')[0]) end) from teg_mta_intf::ieg_xinyueclub

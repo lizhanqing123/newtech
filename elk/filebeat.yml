@@ -1,0 +1,13 @@
+# 日志输入配置
+filebeat.inputs:
+- type: log
+  enabled: true
+  paths:
+  # 需要收集的日志所在的位置，可使用通配符进行配置
+  #- /data/elk/*.log
+  - /usr/share/filebeat/logs/*.log
+
+#日志输出配置(采用 logstash 收集日志，5044为logstash端口)
+output.logstash:
+  hosts: ['172.16.40.88:5044']
+

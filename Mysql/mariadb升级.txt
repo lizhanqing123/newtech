@@ -1,0 +1,16 @@
+vim /etc/yum.repos.d/MariaDB.repo
+
+# MariaDB 10.3 CentOS repository list
+# http://yum.mariadb.org/
+[mariadb]
+name = MariaDB
+baseurl = http://yum.mariadb.org/10.3/centos7-amd64/
+gpgkey = https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
+gpgcheck = 1
+
+yum clean all 
+yum makecache
+
+yum install mariadb mariadb-server
+
+systemctl start mariadb

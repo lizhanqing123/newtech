@@ -1,0 +1,44 @@
+1.求斐波纳数列第n个数的值
+int Fabci( int n)
+{
+     if (n == 1 || n == 2)
+     {
+          return 1;
+     }
+     return Fabci(n-1) + Fabci(n-2);
+}
+
+
+2.钱币问题。有1，2，5，10元的钱币。求这些钱币拼凑成n元有多少种方法
+
+void Money( int n, int &count )
+{
+ count = 0;
+ int b1max = n/1;
+ int b2max = n/2;
+ int b3max = n/5;
+ int b4max = n/10;
+ for( int i = 0; i<b1max; i++)
+   for( int j = 0; j<b2max; j++)
+      for( int k = 0; k<b5max; k++)
+          for( int m = 0; m<b10max; m++)
+                  {
+                       if (i+j*2+k*5+m*10 == n)
+                       {
+                           count++;     
+                        }
+                  }
+ }
+
+3.青蛙跳级问题
+一个青蛙可以跳1级台阶。也可以跳2级台阶
+问N级台阶。一共多少种跳法
+
+int Jump( int n )
+{
+    if (n == 1 || n == 2)
+    {
+       return 1;
+    }
+    return Jump( n - 1) + Jump(n-2);
+}

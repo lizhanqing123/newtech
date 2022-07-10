@@ -1,0 +1,142 @@
+1 LRU 淘汰算法
+
+双容器实现:
+map< int key, Node *p>_map;
+void ReadData( int key )
+{
+    Node *p = (Node*)_map.find( key );
+    print(p->data);
+    if (p->next == NULL)
+    {
+       tail = p->pre;
+    }
+    Node *pre = p->pre;
+    Node *pre->next = p->next;
+    Node *next = p->next;
+    next->pre = pre;
+    p->pre = head;
+    p->next = head->next;
+}
+
+void InsertData( int key, in data)
+{
+    _map,insert( key, data );
+    Node *p = new Node;
+    p->data = data;
+    p->key = key;
+    p->next = head->next;
+    head->next = p;
+    g_length++;
+    if (g_length > MAX)
+    {
+        int key = tail->key;
+         _map.earse(key);
+        tail = tail->pre;
+        tail->next = NULL; 
+    }
+}
+
+
+2 最短路径问题:
+Dijkstra
+
+Dijkstra核心思想是：如果确定一个顶点和起点是当前的最短路径，那么就可以确定这个点就是到起点的最短路径，
+然后根据这个值min，去更新之前估算的最短路径的值dist[]中的值，这一步仅仅是更新估算值：
+
+void Dijkstra()
+{
+   for( int i = 0; i<G.vnum i++)
+   {
+        int u = 0;
+         //在没有确定的顶点里面找个最短的
+ 	for( int j = 0; j<G.vnum; j++)
+        {
+            if ( map[v0][j] < min && !vistied[j])
+            {
+                 dist[j] = min;
+                 u = j;       
+            }
+        } 
+        visited[u] = true;           
+   }
+   //根据这个u点。遍历所有点，找到一个能用这个最短路径找到一个点更新估算值   
+   for（ int k = 0; k<G.vnum; k++）
+   {
+       if ( visited[k] == false && min + map[u][k] < dist[k])
+       {
+            dist[k] = min + map[u][k];
+       }     
+   }
+}
+
+3. 在一个2维度数组中，0代表海洋。1代表陆地，求连在一起的岛屿的大岛屿的数量
+func Search( i int, j int, a [][] int){
+
+   if i >= m || j >= n || i < 0 || j < 0{
+        return
+    }
+    if a[i][j] == 1{
+         tmp += 1
+         a[i][j] = 2
+   
+        Search( i+1, j, a )
+        Search( i-1, j, a )
+        Search( i, j +1, a)
+        Search( i, j -1, a)
+   }
+}
+
+var island int
+var tmp int
+var m int
+var n int
+func Soluation( a [][] int ){
+
+      for i := 0;i<m; i++{
+          for j := 0;j<n; j++{
+	          Search( i,j,a)
+                if tmp > 0{
+                     tmp = 0
+                     island += 1
+                }
+          }
+      }
+}
+
+4.现有一个IP库文件，格式如下(以逗号分隔)：
+
+起始ip,结束ip,国家名
+
+其中起始ip和结束ip定义了一个ip段，这个ip段中的ip都属于后面的国家名
+
+IP库文件示例如下：
+0.0.0.0,1.5.7.8,CN
+1.5.7.9,2.255.1.39,US
+2.255.1.40,5.2.255.255,CN
+4.2 如果使用mysql来实现从ip获取国家名的功能，mysql的表格应该如何设计？应该用怎么样的sql来查询这个表格？表格的索引应该如何设计？
+
+将ip转为数字
+建立联合索引ipindex(ipstart,ipend)
+
+CREATE TABLE `iptest` (
+  `ipstart` int(11) DEFAULT NULL,
+  `ipend` int(11) DEFAULT NULL,
+  `country` varchar(255) DEFAULT NULL,
+  KEY `ipindex` (`ipstart`,`ipend`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+
+select country from iptest where ipstart <= 4233243 and ipend >= 4233243;
+
+
+4.3 如果使用redis来实现从ip获取国家名的功能，可以使用redis的何种数据结构？具体的实现方法是怎么样的？
+
+使用zsort
+Zadd ipset 100 ipstart1int
+Zadd ipset 200 ipend1int
+Zadd ipset 300 ipstart2int
+Zadd ipset 400 ipend2int
+
+Zrange ipset (150 +inf LIMIT 0 1
+输出ipend1
+所有数据都是有序的，只要查询到第一个大于指定Ip值的就是这个国家的最大ip
+

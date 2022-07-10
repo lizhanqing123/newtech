@@ -1,0 +1,14 @@
+到 https://github.com/laravel/laravel 下载Laravel的master，并解压到上述目录下
+
+在www/laravel目录中运行composer install
+
+copy .env.example .env
+
+php artisan key:generate
+
+
+php artisan serve  (这是一种开发模式)
+
+正式模式还是要启动nginx和php-fpm( windows是php-cgi ),将nginx.conf里的public指向laravel的路径
+larval 5.x的版本可以用php7.x，高本本需要php8.x
+

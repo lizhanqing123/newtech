@@ -1,0 +1,240 @@
+version: '3'
+
+networks:
+      redis_bridge:
+              driver: bridge
+services:
+
+    kibana:
+        image: docker.elastic.co/kibana/kibana:7.12.0
+        container_name: kibana
+        restart: always
+        privileged: true
+        ports:
+            - "5601:5601"
+        volumes:
+            - /data/elk/kibana.yml:/usr/share/kibana/config/kibana.yml
+
+
+    es:
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.12.0
+        container_name: es
+        restart: always
+        privileged: true
+        ports:
+            - "9200:9200"
+        environment:
+            - "discovery.type=single-node"
+            - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+
+
+    filebeat:
+        image: store/elastic/filebeat:7.4.1
+        container_name: filebeat
+        restart: always
+        privileged: true
+        user: root
+        command: --strict.perms=false
+        volumes:
+            - /data/elk/filebeat/filebeat.yml:/usr/share/filebeat/filebeat.yml
+            - /root/jackpot/Nutfun/bin/logs:/usr/share/filebeat/logs
+            - /var/lib/docker/containers:/var/lib/containers:ro
+            - /var/run/docker/sock:/var/run/docker.sock
+            
+
+
+    logstash:
+        image: logstash:7.12.0
+        container_name: logstash
+        restart: always
+        privileged: true
+        ports:
+            - "5044:5044"
+
+        user: root
+
+        volumes:
+            - /data/elk/logstash/logstash.yml:/usr/share/logstash/config/logstash.yml
+            - /data/elk/logstash/conf.d/jackpot.conf:/usr/share/logstash/conf.d/jackpot.conf
+            - /root/jackpot/Nutfun/bin/logs:/usr/share/logstash/logs
+
+    redis:
+        image: docker.io/redis:6.0.9
+        container_name: rank_redis
+        restart: always
+        volumes:
+            - /etc/redis/rankdata:/data/data
+            - /etc/redis-rank.conf:/data/redis.conf
+            - /etc/redids/ranklogs:/data/logs/
+            - /etc/localtime:/etc/localtime
+        ports:
+            - "6378:6379"
+        networks:
+            - redis_bridge
+        command:
+            /bin/bash -c "redis-server /data/redis.conf --appendonly yes"
+    
+    proxysrv:
+        ports:
+            - "8080:8080"
+            - "443:443"
+        build:
+            context: .
+            dockerfile: DockerfileProxysrv
+        restart: always
+        privileged: true
+        volumes:                                                                                                                                                            
+            - ./logs:/jackpot/bin/logs
+            - ./static:/jackpot/bin/static
+        environment:
+            MASTERIP: 172.16.40.88
+
+    loginsrv:
+        ports:
+            - "8081:8081"
+        build:
+            context: .
+            dockerfile: DockerfileLoginsrv
+        restart: always
+
+        privileged: true
+        volumes:
+            - ./logs:/jackpot/bin/logs
+        environment:
+            MYSQLIP: 172.16.40.88:3306
+            REDISIP: 172.16.40.88:6379
+            REDISRANKIP: 172.16.40.88:6378
+            KAFKAIP: 172.16.40.88
+            NGINXIP: 172.16.40.88
+            LOGLEVEL: info
+            FACEBOOKURL: 149.129.55.105
+            MYSQLUSER: root
+
+    spinsrv:
+        ports:
+            - "8082:8082"
+        build:
+            context: .
+            dockerfile: DockerfileSpinsrv
+
+        restart: always
+
+        privileged: true
+        volumes:
+            - ./logs:/jackpot/bin/logs
+            - /etc/localtime:/etc/localtime:ro
+
+        environment:
+            MYSQLIP: 172.16.40.88:3306
+            REDISIP: 172.16.40.88:6379
+            REDISRANKIP: 172.16.40.88:6378
+            KAFKAIP: 172.16.40.88
+            NGINXIP: 172.16.40.88
+            LOGLEVEL: info
+            MYSQLUSER: root
+
+    hallsrv:
+        ports:
+            - "8083:8083"
+        build:
+            context: .
+            dockerfile: DockerfileHallsrv
+        restart: always
+
+        volumes:
+            - ./logs:/jackpot/bin/logs
+        privileged: true
+        environment:
+            MYSQLIP: 172.16.40.88:3306
+            REDISIP: 172.16.40.88:6379
+            REDISRANKIP: 172.16.40.88:6378
+            KAFKAIP: 172.16.40.88
+            NGINXIP: 172.16.40.88
+            LOGLEVEL: debug
+            MYSQLUSER: root
+
+    ranksrv:
+        ports:
+            - "8085:8085"
+        build:
+            context: .
+            dockerfile: DockerfileRanksrv
+        restart: always
+
+        volumes:
+            - ./logs:/jackpot/bin/logs
+            - ./uploads:/jackpot/bin/uploads
+        privileged: true
+        environment:
+            MYSQLIP: 172.16.40.88:3306
+            REDISIP: 172.16.40.88:6379
+            REDISRANKIP: 172.16.40.88:6378
+            KAFKAIP: 172.16.40.88
+            NGINXIP: 172.16.40.88
+            LOGLEVEL: debug
+            MYSQLUSER: root
+
+    gatewaysrv:
+        ports:
+            - "9000:9000"
+        build:
+            context: .
+            dockerfile: DockerfileGatewaysrv
+        restart: always
+
+        volumes:
+            - ./logs:/jackpot/bin/logs
+        privileged: true
+        environment:
+            MYSQLIP: 172.16.40.88:3306
+            REDISIP: 172.16.40.88:6379
+            REDISRANKIP: 172.16.40.88:6378
+            KAFKAIP: 172.16.40.88
+            NGINXIP: 172.16.40.88
+            LOGLEVEL: info
+            MYSQLUSER: root
+
+
+    timersrv:
+        build:
+            context: .
+            dockerfile: DockerfileTimersrv
+        restart: always
+
+        volumes:
+            - ./logs:/jackpot/bin/logs
+        privileged: true
+        environment:
+            MYSQLIP: 172.16.40.88:3306
+            REDISIP: 172.16.40.88:6379
+            REDISRANKIP: 172.16.40.88:6378
+            KAFKAIP: 172.16.40.88
+            NGINXIP: 172.16.40.88
+            LOGLEVEL: debug
+            MYSQLUSER: root
+
+
+    websrv:
+        ports:
+            - "8000:8000"
+            - "80:80"
+        build:
+            context: .
+            dockerfile: DockerfileWeb
+        restart: always
+        
+        volumes:
+            - ./logs:/jackpot/bin/logs
+            - /slotIcon:/slotIcon
+        privileged: true
+        environment:
+            MYSQLIP: 172.16.40.88:3306
+            REDISIP: 172.16.40.88:6379
+            REDISRANKIP: 172.16.40.88:6378
+            KAFKAIP: 172.16.40.88
+            NGINXIP: 172.16.40.88
+            LOGLEVEL: debug
+            MYSQLUSER: root
+            
+          
+

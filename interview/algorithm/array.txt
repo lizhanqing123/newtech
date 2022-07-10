@@ -1,0 +1,294 @@
+1.有序数组得到合并
+void MergeArray( int a[], int len1, int b, int len2, int c[] )
+{
+    int i = 0;
+    int j = 0;
+    int k = 0;
+    while (i<len1 && j<len2)
+    {
+        if (a[i] <= b[j])
+        {
+            c[k] = a[i];
+            i++;
+            k++;     
+        }
+        else
+        {
+            c[k] = b[j];
+            j++;
+            k++;
+        }
+    }
+    if (i >= len1)
+    {
+        for( ; j<len2; j++,k++)
+        {
+             c[k] = b[j];
+        }
+    }
+    else
+    {
+        for( ; i<len1; i++,k++)
+        {
+             c[k] = a[i];
+             
+        }
+    }
+}
+
+
+2.二分法查找有序数组
+关键点: mid = (low+high)/2;
+int find(int n,int a[],int len)
+{
+    int low=0;
+    int high=len-1;
+    int mid=0;
+    while(low<high)
+    {
+        mid=(low+high)/2;
+       //find
+       if(n==a[mid])
+       {
+            return mid;
+       }
+       else if(n>a[mid])
+      {
+          low=mid+1;
+      }
+      else
+     {
+       high=mid-1;
+      }
+    }
+    return -1;
+}
+
+
+3.找出一个无序数组的中位数
+关键点：那第一个数当轴，高位往低位走，比轴小的数交换到低位，比轴小的数交换到高位。轴最后归位
+然后判断这个位置是不是数组的中间。如果在中间的左边，则在右边继续找
+int partition(int a[], int low, int high)
+{
+ 
+    int q = a[low];
+
+    while (low < high)
+    {
+ 
+         while (low < high && a[high] >= q)
+   
+          high--;
+
+         a[low] = a[high];
+
+         while (low < high && a[low] <= q)
+
+         low++;
+
+         a[high] = a[low];
+
+     }
+     a[low] = q;
+     return low;
+
+}
+
+
+int findMidium(int a[], int n)
+
+{
+ 
+     int index = n / 2;
+
+     int left = 0;
+
+     int right = n - 1;
+
+     int q = -1;
+
+     while (index != q)
+     {
+ 
+ 	q = partition(a, left, right);
+
+ 	if (q < index)
+
+  	 	left = q + 1;
+ 
+        else if (q>index)
+
+  		 right = q - 1;
+
+     }
+     return a[index];
+}
+
+
+4.数组遍历求max(a[i] - a[j])
+其实只要找到j前面那个最大的数就可以了。记为maxai;在遍历一遍的情况下记录下maxai
+int maxCha( int a[], len )
+{
+	if (len < 2)
+		return 0;
+
+	int maxai = a[0];
+	int max = a[1] - a[0];
+	for( int j = 1; j<len; j++)
+	{
+		int i = j-1;	
+		if (a[i] > maxai)
+		{
+			maxai = a[i];
+		}
+		if (a[j] - maxai > max)
+		{
+			max = a[j] - maxai;
+		}
+	}
+	return max;
+}
+
+
+5.2个数组求交集，并且重复的数按2个数组中更最小次数输出
+例如：
+var array1 = []int{2, 2, 3, 4,5,5}
+var array2 = []int{4, 4, 4, 4,5,5}
+输出4，5，5
+
+func soluation( array1 [] int, array2 [] int){
+    map1 := make( map[int]int,0)
+    map2 := make( map[int]int,0)
+    for _,v := range array1{
+        ret := GetNums(array1,v)
+        map1[v] = ret
+    }
+    for _,v := range array2{
+        ret := GetNums(array2,v)
+        map2[v] = ret
+    }
+    
+    for k,v := range map1{
+        if v2,ok := map2[k];ok{
+            if v2 < v{
+                map1[k] = v2
+            }
+        }else{
+            map1[k] = 0
+        }
+    }
+    for k2,v2 := range map2{
+        if _,ok := map1[k2];!ok{
+            map1[k2] = v2
+        }
+    }
+    
+    for k,v := range map1{
+        for i:= 0;i<v;i++{
+            fmt.Println(k)
+        }
+    }
+}
+
+
+6.  在一个有序数据中找到一个指定数k的个数例如[1,1,2,2,2,3,4,4,4,4,5,6,7,8]，给出2，返回3
+
+package main
+
+import "fmt"
+
+func Find( n int, a [] int,  low int, high int) int {
+    mid :=0
+    for
+    {
+        if low > high{
+             return -1
+        }
+        mid=(low+high)/2;
+       //find
+       if(n==a[mid]){
+            return mid;
+       }else if(n>a[mid]){
+          low=mid+1;
+      }else{
+       high=mid-1;
+      }
+    }
+    return -1;
+}
+
+var count = 0
+var minindex = -1
+var maxindex = -1
+
+func Count( a [] int, k int, start int, end int ){
+    if start > end{
+        return
+    }
+    index := Find( k, a, start,end )
+    if index  == -1{
+        return
+	 }
+    //fmt.Println("找到了数index=%d",index)
+    if index > maxindex{
+        maxindex = index
+    }
+    if index < minindex{
+        minindex = index
+    }
+    if index + 1 < len(a) && a[index + 1] == k{
+        Count( a,k, index+1, end )
+    }
+    
+    if index - 1 >= 0 && a[index-1] == k{
+        Count( a, k, start, index-1 )
+    }
+    
+    
+    
+}
+
+func main() {
+    
+   var a = []int{1, 3, 3, 3, 4, 4, 4, 4, 4, 5, 5, 5, 6, 8, 8}
+   k := 4
+   minindex = len(a) -1
+   Count(a,k,0,len(a)-1)
+    count = maxindex - minindex + 1
+    fmt.Println("结果是",count)
+}
+
+
+7.设计一个算法，找到数组中所有和为指定值的整数对。
+
+func Test( sum int ){
+
+   var array = [14]int{3,8,7,6,4,2,5,1,2,3,2,2,3,3}
+   //var array = [14]int{2,2,2,2,2,2,3,3,3,3,3,3}
+   map1 := make(map[int]int,0)
+
+   for _,v := range array{
+      tmp := sum - v
+      if count,ok := map1[tmp];ok{
+         count -= 1
+         if count == 0{
+            delete(map1,tmp)
+         }else{
+            map1[tmp] = count
+         }
+         fmt.Printf( "%d,%d\n",tmp,v)
+      }else{
+         if _,ok := map1[v];ok{
+            map1[v] += 1
+         }else{
+            map1[v] = 1
+         }
+      }
+   }
+}
+
+
+
+
+
+

@@ -1,0 +1,36 @@
+1接受文件端为服务端，端口873
+服务端配置文件:
+/etc/rsyncd.conf
+uid = root
+gid = root
+use chroot = no
+max connections = 2
+pid file = /var/run/rsyncd.pid
+log file = /var/log/rsyncd.log
+lock file = /var/run/rsyncd.lock
+
+[test]
+path = /captain/shell
+read only = no
+auth users = rsync
+secrets file = /etc/rsyncd.secrets
+list = no
+
+
+
+这个文件权限必须是600
+/etc/rsyncd.secrets内容
+rsync:123456
+
+客户端配置文件:
+/etc/rsyncd.conf
+pid file = /var/run/rsyncd.pid
+log file = /var/log/rsyncd.log
+
+
+/etc/rsyncd.passwd
+123456
+这个文件权限必须是600
+rsync -avz --password-file=/etc/rsyncd.passwd /data/shell/* rsync@192.168.1.103::test
+
+

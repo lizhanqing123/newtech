@@ -1,0 +1,24 @@
+#!/usr/bin/python
+import tensorflow as tf
+import numpy as np
+
+holdprices = tf.placeholder(tf.float32)
+prices = tf.placeholder(tf.float32)
+operator = tf.placeholder(tf.float32)
+
+def tensorflowFunc(x1,x2):
+	return (x1[0]*x2[1])
+
+lambdaFunc = lambda x: tensorflowFunc(x[0], x[1])
+
+elems = (prices,operator)
+#squares = tf.map_fn(lambda x: (x[0],x[1]), elems )
+squares = tf.map_fn( lambdaFunc, elems )
+
+print(squares)
+
+sess = tf.Session()
+
+init = tf.global_variables_initializer()
+
+sess.run(init)

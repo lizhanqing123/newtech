@@ -1,0 +1,13 @@
+insert table ied_osrd::t_dw_tgclub_app_openid_to_xyopenid
+select tb1.strtime,tb1.gamexyopenid,tb1.gameappid,tb1.gamecommid,tb1.xyappid,tb1.xyopenid
+from 
+(
+	select strtime,gamexyopenid, gameappid, gamecommid,xyappid,xyopenid from ieg_tdbank::tgclub_dsl_vipgameopenidtoxyopenid_fht0 where tdbank_imp_date >= '2017090200'
+)tb1
+left join 
+(
+	select xyopenid,gameopenid from ied_osrd::t_dw_tgclub_app_openid_to_xyopenid
+	
+)tb2
+on(tb1.xyopenid = tb2.xyopenid and tb1.gamexyopenid = tb2.gameopenid )
+where tb2.xyopenid IS NULL 

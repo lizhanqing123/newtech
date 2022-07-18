@@ -1,0 +1,29 @@
+cd /usr/local/src/
+ 
+wget https://pecl.php.net/get/redis-4.0.1.tgz
+
+tar -zxvf redis-4.0.1.tgz
+
+ yum install m4
+ yum install autoconf
+
+cd redis-4.0.1
+phpize
+
+whereis php-config
+ 
+./configure --with-php-config=/usr/local/php/bin/php-config
+
+make && make install
+
+ll 扩展安装的位置
+
+php -r 'phpinfo();' | grep 'php.ini'
+
+vim /usr/local/php/etc/php.ini
+
+extension=redis.so
+
+service php-fpm restart
+
+php -m

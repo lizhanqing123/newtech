@@ -1,0 +1,29 @@
+1.如果telnet上去马上断开时因为里面的xxx.conf。必须监听80，监听了别的端口就有这个问题，容器内部的端口必须80.
+
+2.docker run --rm -p 8080:8080 -v "$(pwd)":/project -w /project php74 /bin/sh -c "cd public && php -S 0.0.0.0:8080"
+
+cd public是因为主目录的index.php在public里面
+
+
+2.php扩展安装:
+docker-php-ext-install mbstring
+docker-php-ext-install pdo pdo_mysql
+
+redis扩展
+
+curl -L -o /tmp/redis.tar.gz https://github.com/phpredis/phpredis/archive/3.1.3.tar.gz
+tar xfz /tmp/redis.tar.gz
+rm -r /tmp/redis.tar.gz
+
+进入容器
+mkdir -p /usr/src/php/ext
+退出容器
+docker cp把整个phpredis-3.1.3考到容器内部
+
+再进入容器
+docker-php-ext-install redis
+mv phpredis-3.1.3/ /usr/src/php/ext/redis
+
+docker restrart xxxxx(容器id)
+
+4.确保容器里面的config.php和database.php都是好的。确保redis密码和mysql都可以外部访问.

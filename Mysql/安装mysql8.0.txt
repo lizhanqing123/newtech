@@ -1,0 +1,51 @@
+rpm -qa | grep -i mariadb
+rpm -e --nodeps mariadb-libs-5.5.64-1.el7.x86_64
+
+查询下本机mysql是否卸载干净
+rpm -qa | grep mysql
+
+wget https://repo.mysql.com//mysql80-community-release-el7-3.noarch.rpm
+yum -y install mysql80-community-release-el7-3.noarch.rpm
+
+yum -y install mysql-community-server
+
+如果报错（坑！！！！！！！！）
+
+
+The GPG keys listed for the "MySQL 8.0 Community Server" repository are already installed but they are not correct for this package.
+Check that the correct key URLs are configured for this repository.
+
+
+ Failing package is: mysql-community-icu-data-files-8.0.29-1.el7.x86_64
+ GPG Keys are configured as: file:///etc/pki/rpm-gpg/RPM-GPG-KEY-mysql
+
+
+
+出现上述提示原因是Mysql的GPG升级了，需要重新获取
+
+执行： rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2022
+再次进行服务安装
+
+systemctl start mysqld.service
+
+cat /var/log/mysqld.log | grep password
+
+修改默认密码
+ALTER USER 'root'@'localhost' IDENTIFIED BY 'your password';
+
+
+设置远程登录
+use mysql；
+
+update user set host = '%' where user = 'root';
+
+flush privileges;             # 刷新权限 权限更新后刷新才会起作用
+
+
+
+Nativcate Mysql报错
+
+Mysql 解决1251- Client does not support authentication protocol requested by server...的问题
+
+ALTER USER 'root'@'%' IDENTIFIED WITH mysql_native_password BY '123456';
+

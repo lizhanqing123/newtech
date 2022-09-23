@@ -28,3 +28,6 @@ go env -w GO111MODULE=on
 go env -w GOPROXY=https://goproxy.cn,direct
 
 在goland中配置 Go Moudle 中的Envirment中填入GOPROXY=https://goproxy.cn,direct
+
+设置交叉编译
+go env -w GOOS=linux

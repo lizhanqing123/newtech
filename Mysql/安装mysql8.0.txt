@@ -24,7 +24,7 @@ Check that the correct key URLs are configured for this repository.
 出现上述提示原因是Mysql的GPG升级了，需要重新获取
 
 执行： rpm --import https://repo.mysql.com/RPM-GPG-KEY-mysql-2022
-再次进行服务安装
+再次进行服务安装:yum -y install mysql-community-server
 
 systemctl start mysqld.service
 

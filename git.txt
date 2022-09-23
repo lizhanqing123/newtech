@@ -122,6 +122,10 @@ git fetch
 git checkout -b xxxx  origin/xxxxx
 
 
+拉取子仓库代码：
+git submodule update --init --recursive
+
+
 
 
 

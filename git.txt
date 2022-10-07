@@ -126,6 +126,12 @@ git checkout -b xxxx  origin/xxxxx
 git submodule update --init --recursive
 
 
+放弃本地
+git fetch --all
+git reset --hard origin/master
+git pull //可以省略
+
+
 
 
 

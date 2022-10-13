@@ -53,7 +53,7 @@ SOCERDAY:=SOCER1+SOCER2+SOCER3+SOCER4 + SOCER5+SOCER6+SOCER7+SOCER8+VOLSOCER+NEW
 weekmacd := macd.macd#WEEK(12,26,9);
 weekmacddif := macd.DIF#WEEK(12,26,9);
 SOCERMACD := IF(weekmacd>0,25,-45);
-
+weekrsi := rsi.RSI2#WEEK(6,12,24);
 maweek5 := ma.MA1#WEEK;
 maweek10 := ma.MA2#WEEK;
 maweek20 := ma.MA3#WEEK;
@@ -62,8 +62,10 @@ closeweek := CLOSE#WEEK;
 SOCER16 := IF(closeweek>maweek20,25,-25);
 SOCER17 := IF(maweek5>maweek20,30,-30);
 SOCERMACDDIF := IF(weekmacddif < 0,-25,0);
-SOCERWEEK30 := IF(maweek30<REF(maweek30,1),-10,0);
-SOCERWEEK := SOCERMACD + SOCER16 + SOCER17 + SOCERMACDDIF;
+SOCERWEEKRIS := IF(weekmacddif < 0,-25,0);
+SOCERWEEK30 := IF(maweek30<REF(maweek30,5),-10,0);
+SOCERWEEKRSI := IF (weekrsi < 50,-30,0);
+SOCERWEEK := SOCERMACD + SOCER16 + SOCER17 + SOCERMACDDIF + SOCERWEEKRSI;
 
 //maweek5;
 //maweek10;

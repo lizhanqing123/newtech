@@ -32,15 +32,15 @@ Vars
 	Numeric highest4;
 	Numeric lowest4;
 	Numeric volume;
-	Series<Numeric> avg5;
-	Series<Numeric> avgspec;
-	Series<Numeric> avgspec1;
-	Series<Numeric> avgspec2;
-	Series<Numeric> avg9;
-	Series<Numeric> avg10;
-	Series<Numeric> avg20;
-	Series<Numeric> avg30;
-	Series<Numeric> avg55;
+	NumericSeries avg5;
+	NumericSeries avgspec;
+	NumericSeries avgspec1;
+	NumericSeries avgspec2;
+	NumericSeries avg9;
+	NumericSeries avg10;
+	NumericSeries avg20;
+	NumericSeries avg30;
+	NumericSeries avg55;
 	Numeric highestopen;
 	Numeric lowestopen;
 	
@@ -51,27 +51,26 @@ Vars
 	Numeric biaslimit;
 	Numeric avgcount;
 	Numeric count;
-	Series<Numeric> countserices;
+	NumericSeries countserices;
 	Numeric i;
 	Numeric MinPoint;
-	Series<Numeric> diff(0);
-	Series<Numeric> dea(0);
-	Series<Numeric> ema1(0);
-	Series<Numeric> ema2(0);
+	NumericSeries diff(0);
+	NumericSeries dea(0);
+	NumericSeries ema1(0);
+	NumericSeries ema2(0);
 	Numeric sellprice;
-	Series<Numeric> lastopen;
-	Series<Numeric> lastsucc;
-	Series<Numeric> maxpoint;
+	NumericSeries lastopen;
+	NumericSeries lastsucc;
+	NumericSeries maxpoint;
 	Numeric stoploss;
 	Numeric buycond;
 	Numeric buyrate;
 	Bool breakcond;
 	Bool breakcond2;
-	Series<Numeric> overserices;
-Events
+	NumericSeries overserices;
+Begin
 
-	OnBar(ArrayRef<Integer> indexs)
-	{
+
 	lastopen = lastopen[1];
 	lastsucc = lastsucc[1];
 	maxpoint = maxpoint[1];
@@ -706,11 +705,12 @@ Events
 				lastsucc = -1;
 			}
 			BuyToCover( 0, Max(open, sellprice + MinPoint) );
+			
 		}
 	}
 	
 	
-}
+End
 
 //------------------------------------------------------------------------
 // ±‡“Î∞Ê±æ	GS2015.12.25

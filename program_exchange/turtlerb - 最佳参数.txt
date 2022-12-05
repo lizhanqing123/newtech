@@ -6,12 +6,11 @@
 //------------------------------------------------------------------------
 
 Params
-	Numeric avgn(162);            //大均线,越大亏赢比越高   163
-	Numeric n3(4);                 //开仓突破的K线个数。越大需要突破越多，开仓越难 4
-	Numeric openlimit(72);                                                 72
-	Numeric nLength(4);        //开仓的均线计数器,越大开仓越少 4
-	Numeric openbuy(1);
-	Numeric closelimit1(17); 
+	Numeric avgn(160);
+	Numeric n3(4);
+	Numeric openlimit(80);
+	Numeric nLength(4);
+	Numeric closelimit1(17);
 Vars
 	Numeric highest20;
 	Numeric lowest20;
@@ -40,8 +39,8 @@ Vars
 	Numeric highestopen;
 	Numeric lowestopen;
 	
-	Numeric highestopen2;
-	Numeric lowestopen2;
+	//Numeric highestopen2;
+	//Numeric lowestopen2;
 	
 	Numeric breakline;
 	Numeric biaslimit;
@@ -55,19 +54,22 @@ Vars
 	NumericSeries ema2(0);
 	Numeric sellprice;
 	NumericSeries lastopen;
-	NumericSeries lastsucc;
+	//NumericSeries lastsucc;
 	NumericSeries maxpoint;
 	Numeric stoploss;
 	Numeric closelimit(17);
+	Numeric tmpvolume;
 Begin
 
 	If(!CallAuctionFilter()) Return;
 	
+	
+	tmpvolume = 1;
 	lastopen = lastopen[1];
-	lastsucc = lastsucc[1];
+	//lastsucc = lastsucc[1];
 	maxpoint = maxpoint[1];
 	
-	Commentary( "last succesful=" + Text(lastsucc) );
+	//Commentary( "last succesful=" + Text(lastsucc) );
 	Commentary( "last max point=" + Text(maxpoint[1]) );
 	//biaslimit = openlimit;
 	biaslimit = openlimit + (Close[1] - openlimit*57)/(openlimit*5.7);
@@ -99,8 +101,8 @@ Begin
 	highestopen = HighestFC(High[1], n3);
 	lowestopen = LowestFC(Low[1], n3);
 	
-	highestopen2 = HighestFC(High[1], n3-1);
-	lowestopen2 = LowestFC(Low[1], n3-1);
+	//highestopen2 = HighestFC(High[1], n3-1);
+	//lowestopen2 = LowestFC(Low[1], n3-1);
 	
 	
 	
@@ -223,38 +225,24 @@ Begin
 			{
 				biaslimit = biaslimit*1.05;
 			} 
-			if ( openbuy == 1 && ema1[1]>ema2[1] and dea[3]>dea[2] and dea[2] <dea[1] and Abs(Close[1] - avg20[1]) < biaslimit*1.1 and (avgcount >= 11 || count >= nLength) and Close[1] > avg5[1]  )
+			if (  ema1[1]>ema2[1] and dea[3]>dea[2] and dea[2] <dea[1] and Abs(Close[1] - avg20[1]) < biaslimit*1.1 and (avgcount >= 11 || count >= nLength) and Close[1] > avg5[1]  )
 			{ 
 				if (CurrentBar - lastopen < 10)
 				{
 					volume = volume*0.9;
 				}
-			    Buy( volume, open );
+			    Buy( 0, open );
 				maxpoint = High;
 				lastopen[0] = CurrentBar;
 			}
 			else  if ( breakline > 0 && Abs(breakline - avg20[1]) < biaslimit  && breakline > avg20[1]  && High > breakline  )
 			{
- 				if (Close[2] < avg55[2] && BarsSinceExit < 9 && Close[7] < avg55[7] )
+ 				if (Close[2] > avg55[2]  && Close[6] > avg55[6] )
 				{
-					volume = volume * 0.1;
+					Buy( 0, Max(breakline + MinPoint,open));
+					maxpoint = High;
+					lastopen[0] = CurrentBar;
 				}
-				else if (CurrentBar - lastopen < 15 && Close[1] - avg20[1] > 0.4*biaslimit && BarsSinceExit < 7 )
-				{
- 					volume = volume * 0.4;
-				}
- 				else if (breakline - avg55[1] > openlimit * 4)
-				{
-					volume = volume * 0.15;
-				}
-				else if (CurrentBar - lastopen < 10)
-				{
-					volume = volume * 0.9;
-				}
-				
-				Buy( volume, Max(breakline + MinPoint,open));
-				maxpoint = High;
-				lastopen[0] = CurrentBar;
 			} 
 		}
 		else if (Close[1] < avg55[1] )
@@ -279,37 +267,24 @@ Begin
 			{
 				biaslimit = biaslimit*1.05;
 			} 
-			if ( openbuy == 1 && ema1[1]<ema2[1] and dea[3]<dea[2] and dea[2] >dea[1] and Abs(Close[1] - avg20[1]) < biaslimit*1.1 and (avgcount <= -11 || count <= (0-nLength)) and Close[1] < avg5[1] )
+			if ( ema1[1]<ema2[1] and dea[3]<dea[2] and dea[2] >dea[1] and Abs(Close[1] - avg20[1]) < biaslimit*1.1 and (avgcount <= -11 || count <= (0-nLength)) and Close[1] < avg5[1] )
 			{
 				if (CurrentBar -lastopen < 10)
 				{
 					volume = volume * 0.9;
 				}
-				Sellshort (volume,open);
+				Sellshort (0,open);
 				maxpoint = Low;
 				lastopen[0] = CurrentBar;
 			}
 			else  if  (  breakline > 0 && avg20[1] - breakline < biaslimit && breakline < avg20[1] &&  Low < breakline )
 			{
-				if (Close[2] > avg55[2] && BarsSinceExit < 9 && Close[7] > avg55[7])
+				if (Close[2] < avg55[2]  && Close[6] < avg55[6])
 				{
-					volume = volume * 0.1;
-				} 
-				else if (CurrentBar - lastopen < 15 && avg20[1] - Close[1] > 0.4*biaslimit && BarsSinceExit < 7 )
-				{
- 					volume = volume * 0.4;
+					SellShort( 0, Min(breakline - MinPoint, open));
+					maxpoint = Low;
+					lastopen[0] = CurrentBar;
 				}
- 				else if (avg55[1] - breakline > openlimit * 4)
-				{
-					volume = volume * 0.15;
-				}
-				else if (CurrentBar - lastopen < 10)
-				{
-					volume = volume * 0.9;
-				}
-				SellShort( volume, Min(breakline - MinPoint, open));
-				maxpoint = Low;
-				lastopen[0] = CurrentBar;
 			} 
 		}
 	}
@@ -323,101 +298,101 @@ Begin
 		if ( (Weekday == 1 || Abs(Day[0] - Day[1]) > 2) && Hour == 9 && Close[1] - avg20[1] > 83 && Close[1] - Open > 2*MinPoint )
 		{
 			Sell( 0, Open );
-			FileAppend( "D:\\tblog\\tb.log", "close0");
+			//FileAppend( "D:\\tblog\\tb.log", "close0");
 		}
 		else if ( Close[1] - avg20[1] > 86 && Close[1] - Open > 7*MinPoint )
 		{
 			Sell( 0, Open );
-			FileAppend( "D:\\tblog\\tb.log", "close0");
+			//FileAppend( "D:\\tblog\\tb.log", "close0");
 		}
 		else if (High - avg20[1] > 8.7*closelimit && High - Max(Open, Close) > 0.36*closelimit )
 		{
 			sellprice = High-0.36*closelimit;
-			lastsucc = 1;
+			//lastsucc = 1;
 			Sell( 0, sellprice - MinPoint );
-			FileAppend( "D:\\tblog\\tb.log", "close000");
+			//FileAppend( "D:\\tblog\\tb.log", "close000");
 		}
 		else if (High - avg20[1] > 6*closelimit && High - Max(Open, Close) > 1.59*closelimit )
 		{
 			sellprice = High-1.59*closelimit;
-			lastsucc = 1;
+			//lastsucc = 1;
 			Sell( 0, sellprice - MinPoint );
-			FileAppend( "D:\\tblog\\tb.log", "close00");
+			//FileAppend( "D:\\tblog\\tb.log", "close00");
 		}
 		else if (High[1] - avg20[1] > closelimit*8.3 || High[2] - avg20[2] > closelimit*8.3 || High[3] - avg20[3] > closelimit*8.3 || High[4] - avg20[4] > closelimit*8.3  || High[5] - avg20[5] > closelimit*8.3 )
 		{
 			sellprice = Max(avg5[1],Low[1]);
-			FileAppend( "D:\\tblog\\tb.log", "close1");
+			//FileAppend( "D:\\tblog\\tb.log", "close1");
 		} 
 		else if (Close[1] < Close[2] && Close[2] < Close[3] && Close[3] < Close[4] && Close[4] < Close[5] )
 		{ 
 			sellprice = Max(avg5[1],Low[1]);
-			FileAppend( "D:\\tblog\\tb.log", "close1");
+			//FileAppend( "D:\\tblog\\tb.log", "close1");
 		}
 		else if ( Close[1] > Close[2] && Close[2] > Close[3] && Close[3] > Close[4] && Close[4] > Close[5] && Close[5] > Close[6]  &&  Close[1] - avg20[1] > closelimit * 3.35 )
 		{ 
 			sellprice = lowest2;
-			FileAppend( "D:\\tblog\\tb.log", "close2");
+			//FileAppend( "D:\\tblog\\tb.log", "close2");
 		}  
 		else if ( BarsSinceLastEntry < 4 &&  (High[1] - avg20[1] >  closelimit*6.83  || High[2] - avg20[2] >  closelimit*6.83)  )
 		{
 			sellprice = lowest2;
-			FileAppend( "D:\\tblog\\tb.log", "close2");
+			//FileAppend( "D:\\tblog\\tb.log", "close2");
 		}
 		else if (High[1] - avg20[1] >  closelimit*6.83 || High[2] - avg20[2] >  closelimit*6.83 || High[3] - avg20[3] >  closelimit*6.83 )
 		{
 			sellprice = lowest3;
-			FileAppend( "D:\\tblog\\tb.log", "close3");
+			//FileAppend( "D:\\tblog\\tb.log", "close3");
 		} 
 		else if ( (High[1] - avg20[1] >  closelimit*5.5 || High[2] - avg20[2] >  closelimit*5.5 || High[3] - avg20[3] >  closelimit*5.5) && Close[1] - AvgEntryPrice > closelimit*4.1 )
 		{
 			sellprice = lowest3;
-			FileAppend( "D:\\tblog\\tb.log", "close3");
+			//FileAppend( "D:\\tblog\\tb.log", "close3");
 		}
 		else if ( Close[1] - AvgEntryPrice > closelimit* 3.6 && lowest3 - lowest4 > closelimit )
 		{
 			sellprice = lowest3;
-			FileAppend( "D:\\tblog\\tb.log", "close3");
+			//FileAppend( "D:\\tblog\\tb.log", "close3");
 		}
 		else if ( Close[1] - AvgEntryPrice > closelimit*4.4 )
 		{
 			sellprice = lowest4;
-			FileAppend( "D:\\tblog\\tb.log", "close4");
+			//FileAppend( "D:\\tblog\\tb.log", "close4");
 		}
 		else if ( BarsSinceLastEntry < 3  && Close[1] - avg20[1] >  closelimit)
 		{
 			sellprice = lowest4;
-			FileAppend( "D:\\tblog\\tb.log", "close4");
+			//FileAppend( "D:\\tblog\\tb.log", "close4");
 		}
 		else if (Close[1] < avg20[1] && avg5[1] < avg20[1] )
 		{
 			sellprice = lowest4;
-			FileAppend( "E:\\tblog\\tb.log", "close4");
+			//FileAppend( "E:\\tblog\\tb.log", "close4");
 		} 
  		else if (Close[1] < Low[BarsSinceEntry] && BarsSinceEntry > 3 )
 		{
 			sellprice = lowest5;
-			FileAppend( "D:\\tblog\\tb.log", "close5");
+			//FileAppend( "D:\\tblog\\tb.log", "close5");
 		} 
 		else if ( Close[1] - AvgEntryPrice > closelimit * 2.1  && Close[1] < avg10[1] )
 		{
 			sellprice = lowest5;
-			FileAppend( "D:\\tblog\\tb.log", "close5");
+			//FileAppend( "D:\\tblog\\tb.log", "close5");
 		}
 		else if (avg5[1] < avg10[1] && Close[1] < avg10[1] )
 		{
 			sellprice = lowest5;
-			FileAppend( "D:\\tblog\\tb.log", "close5");
+			//FileAppend( "D:\\tblog\\tb.log", "close5");
 		} 
 		else if (highest6 - lowest7 < closelimit*2.9 )
 		{
 			sellprice = lowest7;
-			FileAppend( "D:\\tblog\\tb.log", "close7");
+			//FileAppend( "D:\\tblog\\tb.log", "close7");
 		}
 		else if ( lowest5 - lowest6 > closelimit )
 		{
 			sellprice = lowest5;
-			FileAppend( "D:\\tblog\\tb.log", "close5");
+			//FileAppend( "D:\\tblog\\tb.log", "close5");
 			if (lowest4 - lowest5 > closelimit)
 			{
 				sellprice = lowest4;
@@ -428,18 +403,18 @@ Begin
 		Else
 		{  
 			sellprice = lowest6;
-			FileAppend( "D:\\tblog\\tb.log", "close6");
+			//FileAppend( "D:\\tblog\\tb.log", "close6");
 		}
 		if  (Low < sellprice)
 		{
-			if ( Min(open, sellprice - MinPoint) > AvgEntryPrice)
-			{
-				lastsucc = 1;
-			}
-			Else
-			{
-				lastsucc = -1;
-			}
+			//if ( Min(open, sellprice - MinPoint) > AvgEntryPrice)
+			//{
+				//lastsucc = 1;
+			//}
+			//Else
+			//{
+				//lastsucc = -1;
+			//}
 			Sell( 0, Min(open, sellprice - MinPoint) );
 			
 		}
@@ -455,124 +430,124 @@ Begin
 		if ( (Weekday == 1 || Abs(Day[0] - Day[1]) > 2) && Hour == 9  && avg20[1] - Close[1] > 83 && Open - Close[1] > 2*MinPoint )
 		{
 			BuyToCover( 0, Open );
-			FileAppend( "D:\\tblog\\tb.log", "close0");
+			//FileAppend( "D:\\tblog\\tb.log", "close0");
 		} 
 		else if ( avg20[1] - Close[1] > 86 && Open - Close[1] > 7*MinPoint )
 		{
 			BuyToCover( 0, Open );
-			FileAppend( "D:\\tblog\\tb.log", "close0");
+			//FileAppend( "D:\\tblog\\tb.log", "close0");
 		}
 		else if (avg20[1] - Low > 8.7*closelimit && Min(Open, Close) - Low > 0.36*closelimit)
 		{
 			sellprice = Low + 0.36*closelimit;
-			lastsucc = 1;
+			//lastsucc = 1;
 			BuyToCover( 0, sellprice + MinPoint );
-			FileAppend( "D:\\tblog\\tb.log", "close000");
+			//FileAppend( "D:\\tblog\\tb.log", "close000");
 		}
 		else if (avg20[1] - Low > 6*closelimit && Min(Open, Close) - Low > 1.59*closelimit)
 		{
 			sellprice = Low + 1.59*closelimit;
-			lastsucc = 1;
+			//lastsucc = 1;
 			BuyToCover( 0, sellprice + MinPoint );
-			FileAppend( "D:\\tblog\\tb.log", "close00");
+			//FileAppend( "D:\\tblog\\tb.log", "close00");
 		}
 		else if ((avg20[1] - Low[1]) > closelimit*8.3 || (avg20[2] - Low[2]) > closelimit*8.3 || (avg20[3] - Low[3]) > closelimit*8.3 || (avg20[4] - Low[4]) > closelimit*8.3  || (avg20[5] - Low[5]) > closelimit*8.3 )
 		{
 			sellprice = Min(avg5[1],High[1]);
-			FileAppend( "D:\\tblog\\tb.log", "close1");
+			//FileAppend( "D:\\tblog\\tb.log", "close1");
 		}
 		else if (Close[1] > Close[2] && Close[2] > Close[3] && Close[3] > Close[4] && Close[4] > Close[5] )
 		{ 
 			sellprice = Min (avg5[1],High[1]);
-			FileAppend( "D:\\tblog\\tb.log", "close1");
+			//FileAppend( "D:\\tblog\\tb.log", "close1");
 		}
  		else if ( Close[1] < Close[2] && Close[2] < Close[3] && Close[3] < Close[4] && Close[4] < Close[5] && Close[5] < Close[6] &&  avg20[1] - Close[1] > 3.35* closelimit )
 		{ 
 			sellprice = highest2;
-			FileAppend( "D:\\tblog\\tb.log", "close2");
+			//FileAppend( "D:\\tblog\\tb.log", "close2");
 		}   
 		else if ( BarsSinceLastEntry < 4 && (avg20[1] - Low[1] > closelimit*6.83  || (avg20[2] - Low[2]) > closelimit*6.83) )
 		{
 			sellprice = highest2;
-			FileAppend( "D:\\tblog\\tb.log", "close2");
+			//FileAppend( "D:\\tblog\\tb.log", "close2");
 		} 
 		else if ( ((avg20[1] - Low[1]) > closelimit*5.5 || (avg20[2] - Low[2]) > closelimit*5.5 || (avg20[3] - Low[3]) > closelimit*5.5) &&  AvgEntryPrice - Close[1] > closelimit * 4.1 )
 		{
 			sellprice = highest3;
-			FileAppend( "D:\\tblog\\tb.log", "close3");
+			//FileAppend( "D:\\tblog\\tb.log", "close3");
 		} 
 		else if ((avg20[1] - Low[1]) > closelimit*6.83 || (avg20[2] - Low[2]) > closelimit*6.83 || (avg20[3] - Low[3]) > closelimit*6.83 )
 		{
 			sellprice = highest3;
-			FileAppend( "D:\\tblog\\tb.log", "close3");
+			//FileAppend( "D:\\tblog\\tb.log", "close3");
 		}
 		else if ( AvgEntryPrice - Close[1] > closelimit* 3.6 && lowest4 - lowest3 > closelimit )
 		{
 			sellprice = highest3;
-			FileAppend( "D:\\tblog\\tb.log", "close3");
+			//FileAppend( "D:\\tblog\\tb.log", "close3");
 		} 
 		else if ( AvgEntryPrice - Close[1] > closelimit*4.4 )
 		{
 			sellprice = highest4;
-			FileAppend( "D:\\tblog\\tb.log", "close4");
+			//FileAppend( "D:\\tblog\\tb.log", "close4");
 		}
 		else if ( BarsSinceLastEntry < 3 && Abs(Close[1] - avg20[1]) > closelimit)
 		{
 			sellprice = highest4;
-			FileAppend( "D:\\tblog\\tb.log", "close4");
+			//FileAppend( "D:\\tblog\\tb.log", "close4");
 		}
 		else if (Close[1] > avg20[1] && avg5[1] > avg20[1] )
 		{
 			sellprice = highest4;
-			FileAppend( "D:\\tblog\\tb.log", "close4");
+			//FileAppend( "D:\\tblog\\tb.log", "close4");
 		}
  		 else if (Close[1] > High[BarsSinceEntry] && BarsSinceEntry > 3 )
 		{
 			sellprice = highest5;
-			FileAppend( "D:\\tblog\\tb.log", "close5");
+			//FileAppend( "D:\\tblog\\tb.log", "close5");
 		}
 		else if ( AvgEntryPrice - Close[1] > closelimit*2.1  && Close[1] > avg10[1] )
 		{
 			sellprice = highest5;
-			FileAppend( "D:\\tblog\\tb.log", "close5");
+			//FileAppend( "D:\\tblog\\tb.log", "close5");
 		}
 		else if (avg5[1] > avg10[1] && Close[1] > avg10[1] )
 		{
 			sellprice = highest5;
-			FileAppend( "D:\\tblog\\tb.log", "close5");
+			//FileAppend( "D:\\tblog\\tb.log", "close5");
 		}
 		 
 		else if (Abs(lowest6 - highest7) < closelimit*2.9)
 		{
 			sellprice = highest7;
-			FileAppend( "D:\\tblog\\tb.log", "close7");
+			//FileAppend( "D:\\tblog\\tb.log", "close7");
 		}   
 		else if (highest6 - highest5 > closelimit)
 		{
 			sellprice = highest5;
-			FileAppend( "D:\\tblog\\tb.log", "close5");
+			//FileAppend( "D:\\tblog\\tb.log", "close5");
 			if (highest5 - highest4 > closelimit)
 			{
 				sellprice = highest4;
-				FileAppend( "D:\\tblog\\tb.log", "close4");
+				//FileAppend( "D:\\tblog\\tb.log", "close4");
 			} 
 			
 		}
 		Else
 		{  
 			sellprice = highest6;
-			FileAppend( "D:\\tblog\\tb.log", "close6");
+			//FileAppend( "D:\\tblog\\tb.log", "close6");
 		}
 		if (High > sellprice)
 		{
-			if ( Max(open, sellprice + MinPoint) < AvgEntryPrice)
-			{
-				lastsucc = 1;
-			}
-			Else
-			{
-				lastsucc = -1;
-			}
+			//if ( Max(open, sellprice + MinPoint) < AvgEntryPrice)
+			//{
+			//	lastsucc = 1;
+			//}
+			//Else
+			//{
+			//	lastsucc = -1;
+			//}
 			BuyToCover( 0, Max(open, sellprice + MinPoint) );
 		}
 	}

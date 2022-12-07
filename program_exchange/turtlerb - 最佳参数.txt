@@ -236,23 +236,19 @@ Begin
 				}
 			}
 			biaslimit = biaslimit*0.96;
-			if (Abs(breakline - highest20) < 0.5)
+			if (Abs(breakline - highest20) < 0.16*openlimit)
 			{
 				biaslimit = biaslimit*1.05;
 			} 
 			if (  ema1[1]>ema2[1] and dea[3]>dea[2] and dea[2] <dea[1] and Abs(Close[1] - avg20[1]) < biaslimit*1.1 and (avgcount >= 9 || count >= 4) and Close[1] > avg5[1]  )
 			{ 
 			    Buy( 0, open );
-				//maxpoint = High;
-				//lastopen[0] = CurrentBar;
 			}
-			else  if ( breakline > 0 && Abs(breakline - avg20[1]) < biaslimit  && breakline > avg30[1]  && High > breakline  )
+			else  if ( breakline > 0 && Abs(breakline - avg20[1]) < biaslimit  && breakline > avg20[1]  && High > breakline  )
 			{
  				if (Close[2] > avg55[2]  && Close[6] > avg55[6] )
 				{
 					Buy( 0, Max(breakline,open));
-					//maxpoint = High;
-					//lastopen[0] = CurrentBar;
 				}
 			} 
 		}
@@ -274,23 +270,19 @@ Begin
 				} 
 			}
 			biaslimit = biaslimit*1.04;
-			if (Abs(breakline - lowest20) < 0.5)
+			if (Abs(breakline - lowest20) < 0.16*openlimit)
 			{
 				biaslimit = biaslimit*1.05;
 			} 
 			if ( ema1[1]<ema2[1] and dea[3]<dea[2] and dea[2] >dea[1] and Abs(Close[1] - avg30[1]) < biaslimit*1.1 and (avgcount <= -9 || count <= (0-4)) and Close[1] < avg5[1] )
 			{
 				Sellshort (0,open);
-				//maxpoint = Low;
-				//lastopen[0] = CurrentBar;
 			}
 			else  if  (  breakline > 0 && avg20[1] - breakline < biaslimit && breakline < avg20[1] &&  Low < breakline )
 			{
 				if (Close[2] < avg55[2]  && Close[6] < avg55[6])
 				{
 					SellShort( 0, Min(breakline, open));
-					//maxpoint = Low;
-					//lastopen[0] = CurrentBar;
 				}
 			} 
 		}

@@ -31,3 +31,6 @@ go env -w GOPROXY=https://goproxy.cn,direct
 
 设置交叉编译
 go env -w GOOS=linux
+
+go的私有库
+go env -w GOPRIVATE="gitea.com"

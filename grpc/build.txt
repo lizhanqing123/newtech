@@ -16,3 +16,16 @@ protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=p
 protoc.exe --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative .\YeahMobi.proto
 
 protoc.exe --go_out=. --go_opt=paths=source_relative --grpc-gateway_out=logtostderr=true:. .\YeahMobi.proto
+
+protoc.exe -I . --go_out=. .\cs_room.proto
+
+protoc.exe -I ..\..\protocol\cs --go_out=. ..\..\protocol\cs\cs_room.proto
+
+在windows 的protocal的目录下编译单个文件
+protoc.exe -I . --go_out=..\pkg\cs .\cs\cs_soulpet.proto
+编译全体文件：
+protoc.exe -I .\cs --go_out=..\pkg\cs .\cs\*.proto
+protoc.exe -I .\database --go_out=..\pkg\database .\database\*.proto
+protoc.exe -I .\resource\proto\server --go_out=..\pkg\datacfg .\resource\proto\server\*.proto
+
+

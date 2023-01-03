@@ -90,3 +90,8 @@ void InorderTraversal(BinTree BT)
 	}
 }
 }
+
+4.2叉树求共同祖先
+先求出共同祖先。记录为lca
+2节点n1和n2的距离为：
+Dist(n1,n2)  = Dist(root,n1) + Dist(root,n2) - 2*Dist(root,lca)

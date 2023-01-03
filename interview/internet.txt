@@ -83,6 +83,10 @@ LAST_ACK：等待所有分组死掉
 
 close_await是对方主动要求关闭，本端回复FIN后，进入的状态
 
+time_await是tcp发起放进入的等待状态，close_await是接受方进入的等待状态
+出现大量的close_await是因为服务器没有调用close(socket)导致没有进入下一个状态
+出现大量time_await是大量客户端瞬间关闭，比如压力测试，大量客户端瞬间关闭
+
 主动端可能出现的状态：FIN_WAIT1、FIN_WAIT2、CLOSING、TIME_WAIT 
 被动端可能出现的状态：CLOSE_WAIT LAST_ACK
 

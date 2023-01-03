@@ -132,18 +132,18 @@ int maxCha( int a[], len )
 	if (len < 2)
 		return 0;
 
-	int maxai = a[0];
+	int minai = a[0];
 	int max = a[1] - a[0];
 	for( int j = 1; j<len; j++)
 	{
 		int i = j-1;	
-		if (a[i] > maxai)
+		if (a[i] < minai )
 		{
-			maxai = a[i];
+			minai = a[i];
 		}
-		if (a[j] - maxai > max)
+		if (a[j] - minai > max)
 		{
-			max = a[j] - maxai;
+			max = a[j] - minai;
 		}
 	}
 	return max;
